@@ -8,35 +8,44 @@ import (
 	"github.com/invopop/gobl/bill"
 	"github.com/invopop/gobl/cbc"
 	"github.com/invopop/gobl/l10n"
+	"github.com/invopop/gobl/num"
+	"github.com/invopop/gobl/org"
 	"github.com/invopop/gobl/tax"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// All regimes that should produce valid invoices.
 var allRegimes = []l10n.TaxCountryCode{
 	"ES", "DE", "MX", "AR", "AT", "BE", "BR", "CA", "CH", "CO",
 	"DK", "FR", "GB", "GR", "IE", "IN", "IT", "NL", "PL", "PT",
 	"SE", "SG", "US",
 }
 
+var allAddons = []struct {
+	regime l10n.TaxCountryCode
+	addon  cbc.Key
+}{
+	{"AR", "ar-arca-v4"}, {"BR", "br-nfe-v4"}, {"BR", "br-nfse-v1"},
+	{"CO", "co-dian-v2"}, {"DE", "de-xrechnung-v3"}, {"DE", "de-zugferd-v2"},
+	{"ES", "es-facturae-v3"}, {"ES", "es-sii-v1"}, {"ES", "es-tbai-v1"}, {"ES", "es-verifactu-v1"},
+	{"FR", "fr-choruspro-v1"}, {"FR", "fr-ctc-flow2-v1"}, {"FR", "fr-facturx-v1"},
+	{"GR", "gr-mydata-v1"}, {"IT", "it-sdi-v1"}, {"IT", "it-ticket-v1"},
+	{"MX", "mx-cfdi-v4"}, {"PL", "pl-favat-v1"}, {"PT", "pt-saft-v1"},
+}
+
 func TestEnvelope_AllRegimes(t *testing.T) {
 	for _, cc := range allRegimes {
 		t.Run(string(cc), func(t *testing.T) {
-			env, err := mock.Envelope(
-				mock.WithRegime(cc),
-				mock.WithSeed(42),
-			)
+			env, err := mock.Envelope(mock.WithRegime(cc), mock.WithSeed(42))
 			require.NoError(t, err)
 			require.NoError(t, env.Validate())
 		})
 	}
 }
 
-func TestEnvelope_AllRegimes_MultiplSeeds(t *testing.T) {
-	seeds := []int64{1, 42, 100, 999, 12345}
+func TestEnvelope_AllRegimes_MultipleSeeds(t *testing.T) {
 	for _, cc := range allRegimes {
-		for _, seed := range seeds {
+		for _, seed := range []int64{1, 42, 100, 999, 12345} {
 			t.Run(string(cc), func(t *testing.T) {
 				env, err := mock.Envelope(mock.WithRegime(cc), mock.WithSeed(seed))
 				require.NoError(t, err)
@@ -46,41 +55,8 @@ func TestEnvelope_AllRegimes_MultiplSeeds(t *testing.T) {
 	}
 }
 
-func TestEnvelope_CreditNote_AllRegimes(t *testing.T) {
-	for _, cc := range allRegimes {
-		t.Run(string(cc), func(t *testing.T) {
-			env, err := mock.Envelope(
-				mock.WithRegime(cc),
-				mock.WithCredit(),
-				mock.WithSeed(42),
-			)
-			require.NoError(t, err)
-			require.NoError(t, env.Validate())
-		})
-	}
-}
-
-func TestInvoice_ES(t *testing.T) {
-	inv, err := mock.Invoice(mock.WithRegime(l10n.ES.Tax()), mock.WithSeed(42))
-	require.NoError(t, err)
-	assert.Equal(t, l10n.ES.Tax(), inv.GetRegime())
-	assert.Equal(t, bill.InvoiceTypeStandard, inv.Type)
-	assert.NotEmpty(t, inv.Supplier.Name)
-	assert.NotNil(t, inv.Customer)
-	assert.Len(t, inv.Lines, 3)
-	assert.NotNil(t, inv.Totals)
-}
-
-func TestInvoice_Addons(t *testing.T) {
-	tests := []struct {
-		regime l10n.TaxCountryCode
-		addon  cbc.Key
-	}{
-		{"ES", "es-facturae-v3"},
-		{"DE", "de-xrechnung-v3"},
-		{"MX", "mx-cfdi-v4"},
-	}
-	for _, tc := range tests {
+func TestEnvelope_AllAddons(t *testing.T) {
+	for _, tc := range allAddons {
 		t.Run(string(tc.regime)+"+"+string(tc.addon), func(t *testing.T) {
 			env, err := mock.Envelope(
 				mock.WithRegime(tc.regime),
@@ -93,6 +69,73 @@ func TestInvoice_Addons(t *testing.T) {
 	}
 }
 
+func TestEnvelope_CreditNote_AllRegimes(t *testing.T) {
+	for _, cc := range allRegimes {
+		t.Run(string(cc), func(t *testing.T) {
+			env, err := mock.Envelope(
+				mock.WithRegime(cc),
+				mock.WithType(bill.InvoiceTypeCreditNote),
+				mock.WithSeed(42),
+			)
+			require.NoError(t, err)
+			require.NoError(t, env.Validate())
+		})
+	}
+}
+
+func TestInvoice_Types(t *testing.T) {
+	types := []cbc.Key{
+		bill.InvoiceTypeCreditNote,
+		bill.InvoiceTypeCorrective,
+		bill.InvoiceTypeDebitNote,
+		bill.InvoiceTypeProforma,
+	}
+	for _, invType := range types {
+		t.Run(string(invType), func(t *testing.T) {
+			inv, err := mock.Invoice(
+				mock.WithRegime(l10n.ES.Tax()),
+				mock.WithType(invType),
+				mock.WithSeed(42),
+			)
+			require.NoError(t, err)
+			assert.Equal(t, invType, inv.Type)
+			if invType != bill.InvoiceTypeProforma {
+				assert.NotEmpty(t, inv.Preceding)
+			}
+		})
+	}
+}
+
+func TestInvoice_Template(t *testing.T) {
+	price := num.MakeAmount(999, 2)
+	tmpl := &bill.Invoice{
+		Customer: &org.Party{
+			Name: "Custom Customer S.L.",
+			TaxID: &tax.Identity{
+				Country: l10n.ES.Tax(),
+				Code:    "54387763P",
+			},
+		},
+		Lines: []*bill.Line{{
+			Quantity: num.MakeAmount(1, 0),
+			Item:     &org.Item{Name: "Custom item", Price: &price},
+			Taxes:    tax.Set{{Category: tax.CategoryVAT, Rate: tax.KeyStandard}},
+		}},
+	}
+
+	inv, err := mock.Invoice(
+		mock.WithRegime(l10n.ES.Tax()),
+		mock.WithTemplate(tmpl),
+		mock.WithSeed(42),
+	)
+	require.NoError(t, err)
+	assert.Equal(t, "Custom Customer S.L.", inv.Customer.Name)
+	assert.Len(t, inv.Lines, 1)
+	assert.Equal(t, "Custom item", inv.Lines[0].Item.Name)
+	// Supplier should still be generated.
+	assert.NotEmpty(t, inv.Supplier.Name)
+}
+
 func TestInvoice_Simplified(t *testing.T) {
 	inv, err := mock.Invoice(
 		mock.WithRegime(l10n.ES.Tax()),
@@ -102,17 +145,6 @@ func TestInvoice_Simplified(t *testing.T) {
 	require.NoError(t, err)
 	assert.Nil(t, inv.Customer)
 	assert.True(t, inv.HasTags(tax.TagSimplified))
-}
-
-func TestInvoice_CreditNote(t *testing.T) {
-	inv, err := mock.Invoice(
-		mock.WithRegime(l10n.ES.Tax()),
-		mock.WithCredit(),
-		mock.WithSeed(42),
-	)
-	require.NoError(t, err)
-	assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
-	assert.NotEmpty(t, inv.Preceding)
 }
 
 func TestInvoice_Lines(t *testing.T) {

@@ -47,14 +47,33 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 	country := o.Regime
 	addon := resolveAddon(country, o.Addon)
 	locale := getLocale(country)
-	ac := addons[addon]
+	ac := resolveAddonConfig(addon)
 
-	// Verify the regime exists.
-	if tax.RegimeDefFor(l10n.Code(country)) == nil {
+	regime := tax.RegimeDefFor(l10n.Code(country))
+	if regime == nil {
 		return nil, fmt.Errorf("unsupported regime: %s", country)
 	}
 
-	// Determine series format.
+	inv := buildInvoice(r, o, country, addon, locale, ac)
+
+	// Apply template overrides if provided.
+	if o.Template != nil {
+		applyTemplate(inv, o.Template)
+	}
+
+	// Apply invoice type (standard, credit-note, corrective, debit-note, proforma).
+	if o.Type != "" {
+		applyInvoiceType(r, inv, o.Type, addon, ac, regime)
+	}
+
+	env, err := gobl.Envelop(inv)
+	if err != nil {
+		return nil, fmt.Errorf("building envelope: %w", err)
+	}
+	return env, nil
+}
+
+func buildInvoice(r *rand.Rand, o *Options, country l10n.TaxCountryCode, addon cbc.Key, locale *localeData, ac *addonConfig) *bill.Invoice {
 	series := cbc.Code("MOCK")
 	if ac != nil && ac.Series != "" {
 		series = cbc.Code(ac.Series)
@@ -77,12 +96,9 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		inv.SetTags(tax.TagSimplified)
 	}
 
-	// Invoice-level extensions from addon.
 	if ac != nil && ac.InvoiceTaxExt != nil {
 		inv.Tax = &bill.Tax{Ext: ac.InvoiceTaxExt(r)}
 	}
-
-	// Notes from addon.
 	if ac != nil && len(ac.Notes) > 0 {
 		inv.Notes = ac.Notes
 	}
@@ -92,13 +108,12 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		inv.Customer = buildParty(r, country, locale, locale.CustomerNames, ac, false)
 	}
 	inv.Lines = buildLines(r, country, locale, ac, o.Lines)
-	inv.Payment = buildPayment(r, country, locale, ac)
+	inv.Payment = buildPayment(r, locale, ac)
 
 	if ac != nil && ac.RequiresOrdering {
 		inv.Ordering = &bill.Ordering{
 			Code: cbc.Code(fmt.Sprintf("PO-%05d", r.IntN(99999)+1)),
 		}
-		// Some addons (AR ARCA) require a period on the ordering.
 		if ac.NumericSeries {
 			start := cal.Today().Add(0, -1, 0)
 			end := cal.Today()
@@ -106,21 +121,131 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		}
 	}
 
-	if o.Credit {
-		applyCreditNote(r, inv, addon, ac)
+	return inv
+}
+
+// applyInvoiceType sets the invoice type and adds preceding references
+// for correction types (credit-note, corrective, debit-note).
+func applyInvoiceType(r *rand.Rand, inv *bill.Invoice, invType cbc.Key, addon cbc.Key, ac *addonConfig, regime *tax.RegimeDef) {
+	inv.Type = invType
+
+	switch invType {
+	case bill.InvoiceTypeProforma:
+		return // proforma needs no preceding reference
+	case bill.InvoiceTypeStandard:
+		return
 	}
 
-	env, err := gobl.Envelop(inv)
-	if err != nil {
-		return nil, fmt.Errorf("building envelope: %w", err)
+	// Correction types need a preceding reference.
+	// Check if the regime supports this type.
+	if !regimeSupportsType(regime, addon, invType) {
+		// Fall back to credit-note which is universally supported.
+		inv.Type = bill.InvoiceTypeCreditNote
 	}
-	return env, nil
+
+	yesterday := cal.Today().Add(0, 0, -1)
+	ref := &org.DocumentRef{
+		Identify:  uuid.Identify{UUID: uuid.V7()},
+		Type:      bill.InvoiceTypeStandard,
+		Series:    inv.Series,
+		Code:      cbc.Code(fmt.Sprintf("%05d", r.IntN(99999)+1)),
+		IssueDate: &yesterday,
+	}
+
+	if ac != nil {
+		if ac.CorrectionExt != nil {
+			ref.Ext = ac.CorrectionExt(r)
+		}
+		if ac.CorrectionStamps != nil {
+			for _, s := range ac.CorrectionStamps(r) {
+				ref.Stamps = append(ref.Stamps, &head.Stamp{
+					Provider: s.Provider,
+					Value:    s.Value,
+				})
+			}
+		}
+	}
+
+	inv.Preceding = []*org.DocumentRef{ref}
+}
+
+// regimeSupportsType checks if the regime (with addon) supports a given correction type.
+func regimeSupportsType(regime *tax.RegimeDef, addon cbc.Key, invType cbc.Key) bool {
+	sets := []tax.CorrectionSet{regime.Corrections}
+	if addon != "" {
+		if ad := tax.AddonForKey(addon); ad != nil {
+			sets = append(sets, ad.Corrections)
+		}
+	}
+	for _, cs := range sets {
+		for _, cd := range cs {
+			for _, t := range cd.Types {
+				if t == invType {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// applyTemplate merges non-zero fields from the template into the invoice.
+func applyTemplate(inv *bill.Invoice, tmpl *bill.Invoice) {
+	if tmpl.Series != "" {
+		inv.Series = tmpl.Series
+	}
+	if tmpl.Code != "" {
+		inv.Code = tmpl.Code
+	}
+	if !tmpl.IssueDate.IsZero() {
+		inv.IssueDate = tmpl.IssueDate
+	}
+	if tmpl.Currency != "" {
+		inv.Currency = tmpl.Currency
+	}
+	if tmpl.Supplier != nil {
+		inv.Supplier = tmpl.Supplier
+	}
+	if tmpl.Customer != nil {
+		inv.Customer = tmpl.Customer
+	}
+	if tmpl.Lines != nil {
+		inv.Lines = tmpl.Lines
+	}
+	if tmpl.Payment != nil {
+		inv.Payment = tmpl.Payment
+	}
+	if tmpl.Ordering != nil {
+		inv.Ordering = tmpl.Ordering
+	}
+	if tmpl.Tax != nil {
+		inv.Tax = tmpl.Tax
+	}
+	if tmpl.Notes != nil {
+		inv.Notes = tmpl.Notes
+	}
+	if tmpl.Preceding != nil {
+		inv.Preceding = tmpl.Preceding
+	}
+}
+
+// resolveAddonConfig returns the addon config, falling back to dynamic
+// resolution for unknown addons.
+func resolveAddonConfig(addon cbc.Key) *addonConfig {
+	if addon == "" {
+		return nil
+	}
+	if ac, ok := addons[addon]; ok {
+		return ac
+	}
+	// Dynamic fallback: unknown addon, return empty config.
+	// Scenarios will handle most extension auto-setting.
+	return &addonConfig{}
 }
 
 func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, names []string, ac *addonConfig, isSupplier bool) *org.Party {
 	city := pick(r, locale.Cities)
 	postalCode := city.Code
-	// Regime-specific postal code formats.
 	if fn, ok := postalCodeFormats[country]; ok {
 		postalCode = fn(r)
 	}
@@ -229,20 +354,14 @@ func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac
 		taxes = append(taxes, ac.ExtraCombos(r)...)
 	}
 
-	line := &bill.Line{
+	return &bill.Line{
 		Quantity: num.MakeAmount(int64(r.IntN(20)+1), 0),
 		Item:     lineItem,
 		Taxes:    taxes,
 	}
-
-	if r.IntN(5) == 0 {
-		pct, _ := num.PercentageFromString("10%")
-		line.Discounts = []*bill.LineDiscount{{Percent: &pct, Reason: "Discount"}}
-	}
-	return line
 }
 
-func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData, ac *addonConfig) *bill.PaymentDetails {
+func buildPayment(r *rand.Rand, locale *localeData, ac *addonConfig) *bill.PaymentDetails {
 	key := locale.PaymentKey
 	if key == "" {
 		key = pay.MeansKeyCreditTransfer
@@ -268,47 +387,12 @@ func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData, ac *a
 		due := cal.Today().Add(0, 1, 0)
 		pct, _ := num.PercentageFromString("100%")
 		terms = &pay.Terms{
-			Key: pay.TermKeyDueDate,
-			DueDates: []*pay.DueDate{{
-				Date:    &due,
-				Percent: &pct,
-			}},
+			Key:      pay.TermKeyDueDate,
+			DueDates: []*pay.DueDate{{Date: &due, Percent: &pct}},
 		}
 	}
 
-	return &bill.PaymentDetails{
-		Instructions: instructions,
-		Terms:        terms,
-	}
-}
-
-func applyCreditNote(r *rand.Rand, inv *bill.Invoice, _ cbc.Key, ac *addonConfig) {
-	inv.Type = bill.InvoiceTypeCreditNote
-	yesterday := cal.Today().Add(0, 0, -1)
-
-	ref := &org.DocumentRef{
-		Identify:  uuid.Identify{UUID: uuid.V7()},
-		Type:      bill.InvoiceTypeStandard,
-		Series:    "MOCK",
-		Code:      cbc.Code(fmt.Sprintf("%05d", r.IntN(99999)+1)),
-		IssueDate: &yesterday,
-	}
-
-	if ac != nil {
-		if ac.CorrectionExt != nil {
-			ref.Ext = ac.CorrectionExt(r)
-		}
-		if ac.CorrectionStamps != nil {
-			for _, s := range ac.CorrectionStamps(r) {
-				ref.Stamps = append(ref.Stamps, &head.Stamp{
-					Provider: s.Provider,
-					Value:    s.Value,
-				})
-			}
-		}
-	}
-
-	inv.Preceding = []*org.DocumentRef{ref}
+	return &bill.PaymentDetails{Instructions: instructions, Terms: terms}
 }
 
 func resolveAddon(country l10n.TaxCountryCode, explicit cbc.Key) cbc.Key {
@@ -326,17 +410,12 @@ func regimeCurrency(country l10n.TaxCountryCode) currency.Code {
 	return currency.USD
 }
 
-// pickTaxCombo selects a valid tax combo for the regime by reading the
-// regime definition dynamically. Returns either a rate-based combo (for
-// regimes with defined rates) or a percent-based combo (for regimes
-// where rates are not enumerated).
 func pickTaxCombo(_ *rand.Rand, country l10n.TaxCountryCode) *tax.Combo {
 	regime := tax.RegimeDefFor(l10n.Code(country))
 	if regime == nil {
 		return &tax.Combo{Category: tax.CategoryVAT, Rate: tax.KeyStandard}
 	}
 
-	// Find the primary tax category: prefer VAT/GST/ST, skip retained/informative.
 	var primary *tax.CategoryDef
 	for _, cat := range regime.Categories {
 		if cat.Retained || cat.Informative {
@@ -354,31 +433,26 @@ func pickTaxCombo(_ *rand.Rand, country l10n.TaxCountryCode) *tax.Combo {
 		return &tax.Combo{Category: tax.CategoryVAT, Rate: tax.KeyStandard}
 	}
 
-	// For VAT, the "standard" rate key is specially normalized to "general" by GOBL.
 	if primary.Code == tax.CategoryVAT {
 		return &tax.Combo{Category: primary.Code, Rate: tax.KeyStandard}
 	}
 
-	// For other categories (GST, ST, etc.), find the first rate with values and use it directly.
 	for _, rate := range primary.Rates {
 		if len(rate.Values) > 0 && !rate.Values[0].Disabled {
 			return &tax.Combo{Category: primary.Code, Rate: rate.Rate}
 		}
 	}
 
-	// No usable rates — provide an explicit percent.
 	pct := num.MakePercentage(10, 2)
 	return &tax.Combo{Category: primary.Code, Percent: &pct}
 }
 
-// Regime-specific postal code generators for countries that validate the format.
 var postalCodeFormats = map[l10n.TaxCountryCode]func(r *rand.Rand) cbc.Code{
 	"BR": func(r *rand.Rand) cbc.Code {
 		return cbc.Code(fmt.Sprintf("%05d-%03d", r.IntN(99999), r.IntN(999)))
 	},
 }
 
-// Regime-specific item identity requirements.
 var itemIdentities = map[l10n.TaxCountryCode]func(r *rand.Rand) []*org.Identity{
 	"IN": func(r *rand.Rand) []*org.Identity {
 		return []*org.Identity{{

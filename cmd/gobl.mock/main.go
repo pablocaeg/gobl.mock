@@ -28,8 +28,8 @@ func root() *cobra.Command {
 	var (
 		regime     string
 		addon      string
+		invType    string
 		lines      int
-		credit     bool
 		simplified bool
 		seed       int64
 		hasSeed    bool
@@ -45,12 +45,11 @@ func root() *cobra.Command {
 				mock.WithRegime(l10n.TaxCountryCode(regime)),
 				mock.WithLines(lines),
 			}
-
 			if addon != "" {
 				opts = append(opts, mock.WithAddon(cbc.Key(addon)))
 			}
-			if credit {
-				opts = append(opts, mock.WithCredit())
+			if invType != "" {
+				opts = append(opts, mock.WithType(cbc.Key(invType)))
 			}
 			if simplified {
 				opts = append(opts, mock.WithSimplified())
@@ -82,15 +81,14 @@ func root() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&regime, "regime", "ES", "Tax regime country code (ES, DE, MX)")
-	cmd.Flags().StringVar(&addon, "addon", "", "Addon to apply (e.g. es-facturae-v3, de-xrechnung-v3)")
+	cmd.Flags().StringVar(&regime, "regime", "ES", "Tax regime country code")
+	cmd.Flags().StringVar(&addon, "addon", "", "Addon to apply (e.g. es-facturae-v3)")
+	cmd.Flags().StringVar(&invType, "type", "", "Invoice type: standard, credit-note, corrective, debit-note, proforma")
 	cmd.Flags().IntVar(&lines, "lines", 3, "Number of line items")
-	cmd.Flags().BoolVar(&credit, "credit", false, "Generate a credit note")
 	cmd.Flags().BoolVar(&simplified, "simplified", false, "Generate a simplified invoice")
 	cmd.Flags().Int64Var(&seed, "seed", 0, "Random seed for reproducible output")
 	cmd.Flags().StringVarP(&output, "output", "o", "", "Output file path")
 
-	// Track if --seed was explicitly set.
 	cmd.PreRun = func(_ *cobra.Command, _ []string) {
 		hasSeed = cmd.Flags().Changed("seed")
 	}
