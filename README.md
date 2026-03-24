@@ -2,16 +2,23 @@
 
 Generate realistic, valid [GOBL](https://gobl.org) invoices for any supported tax regime.
 
-## Features
+Released under the Apache 2.0 [LICENSE](https://github.com/pablocaeg/gobl.mock/blob/main/LICENSE), Copyright 2025 Pablo Carrasco.
 
-- Works with **all 23 GOBL tax regimes** out of the box
-- Reads tax categories, rates, and currencies dynamically from GOBL definitions
-- Valid tax IDs with correct check digits for 20+ countries
-- Addon support: FacturaE, XRechnung, CFDI
-- Credit notes with proper preceding references per regime
-- Simplified invoices
-- Deterministic output with seed support
-- Every generated invoice passes `gobl validate`
+[![Lint](https://github.com/pablocaeg/gobl.mock/actions/workflows/lint.yaml/badge.svg)](https://github.com/pablocaeg/gobl.mock/actions/workflows/lint.yaml)
+[![Test](https://github.com/pablocaeg/gobl.mock/actions/workflows/test.yaml/badge.svg)](https://github.com/pablocaeg/gobl.mock/actions/workflows/test.yaml)
+[![GoDoc](https://godoc.org/github.com/pablocaeg/gobl.mock?status.svg)](https://godoc.org/github.com/pablocaeg/gobl.mock)
+
+## Introduction
+
+gobl.mock generates valid GOBL invoices for testing and development. It supports all 23 GOBL tax regimes and all 17 addons out of the box. Every generated invoice passes `gobl validate`.
+
+Key features:
+
+- Read tax categories, rates, and currencies dynamically from GOBL regime definitions.
+- Generate valid tax IDs with correct check digits for 20+ countries.
+- Support all GOBL addons with the required extensions, identities, and structural fields.
+- Produce credit notes, simplified invoices, and configurable line counts.
+- Provide deterministic output with seed support for reproducible testing.
 
 ## Installation
 
@@ -19,83 +26,102 @@ Generate realistic, valid [GOBL](https://gobl.org) invoices for any supported ta
 go install github.com/pablocaeg/gobl.mock/cmd/gobl.mock@latest
 ```
 
-## CLI Usage
+## Usage
+
+### CLI
 
 ```bash
-gobl.mock --regime ES                       # Spanish invoice
+gobl.mock --regime ES                          # Spanish invoice
 gobl.mock --regime DE --addon de-xrechnung-v3  # German XRechnung
-gobl.mock --regime MX --lines 15            # Mexican invoice, 15 lines
-gobl.mock --regime FR --credit              # French credit note
-gobl.mock --regime IT --simplified          # Italian simplified
-gobl.mock --regime BR --seed 42             # Brazilian, reproducible
-gobl.mock --regime PT -o invoice.json       # Portuguese, write to file
+gobl.mock --regime MX --lines 15               # Mexican invoice, 15 lines
+gobl.mock --regime FR --credit                 # French credit note
+gobl.mock --regime IT --simplified             # Italian simplified
+gobl.mock --regime BR --addon br-nfe-v4        # Brazilian NF-e
+gobl.mock --regime PT --addon pt-saft-v1       # Portuguese SAF-T
+gobl.mock --regime ES --seed 42                # Reproducible output
+gobl.mock --regime ES -o invoice.json          # Write to file
 ```
 
-## Library Usage
+### Library
 
 ```go
 env, err := mock.Envelope(
     mock.WithRegime(l10n.ES.Tax()),
+    mock.WithAddon("es-facturae-v3"),
     mock.WithLines(5),
     mock.WithSeed(42),
 )
 
 inv, err := mock.Invoice(
     mock.WithRegime(l10n.DE.Tax()),
-    mock.WithAddon("de-xrechnung-v3"),
     mock.WithCredit(),
 )
 ```
 
 ## Supported Regimes
 
-All regimes supported by GOBL work dynamically. Tax rates and currencies are read from the regime definition at runtime.
+All regimes generate valid tax IDs with correct check digits.
 
-| Code | Country | Tax ID Generation |
-|------|---------|-------------------|
-| AR | Argentina | CUIT/CUIL with mod-11 check |
-| AT | Austria | USt-IdNr with Luhn+4 check |
-| BE | Belgium | Enterprise with mod-97 check |
-| BR | Brazil | CNPJ/CPF with dual mod-11 check |
-| CA | Canada | No tax ID required |
-| CH | Switzerland | UID with mod-11 check |
-| CO | Colombia | NIT with prime-weighted mod-11 check |
-| DE | Germany | USt-IdNr with ISO 7064 check |
-| DK | Denmark | CVR with mod-11 check |
-| ES | Spain | NIF/CIF/NIE with mod-23/Luhn check |
-| FR | France | TVA with SIREN Luhn + mod-97 check |
-| GB | United Kingdom | VAT with weighted sum check |
-| GR | Greece | AFM with powers-of-2 check |
-| IE | Ireland | VAT with mod-23 letter check |
-| IN | India | GSTIN with mod-36 check |
-| IT | Italy | Partita IVA with Luhn check |
-| MX | Mexico | RFC format validation |
-| NL | Netherlands | BTW-id with mod-11 check |
-| PL | Poland | NIP with weighted mod-11 check |
-| PT | Portugal | NIF with weighted mod-11 check |
-| SE | Sweden | Org number with Luhn check |
-| SG | Singapore | UEN/GST format validation |
-| US | United States | No tax ID required |
+| Code | Country | Check Digit Algorithm |
+|------|---------|----------------------|
+| AR | Argentina | Mod-11 |
+| AT | Austria | Luhn+4 |
+| BE | Belgium | Mod-97 |
+| BR | Brazil | Dual Mod-11 |
+| CA | Canada | - |
+| CH | Switzerland | Mod-11 |
+| CO | Colombia | Prime-weighted Mod-11 |
+| DE | Germany | ISO 7064 |
+| DK | Denmark | Mod-11 |
+| ES | Spain | Mod-23 / Luhn |
+| FR | France | SIREN Luhn + Mod-97 |
+| GB | United Kingdom | Weighted sum |
+| GR | Greece | Powers-of-2 |
+| IE | Ireland | Mod-23 letter |
+| IN | India | Mod-36 |
+| IT | Italy | Luhn |
+| MX | Mexico | Format validation |
+| NL | Netherlands | Mod-11 |
+| PL | Poland | Weighted Mod-11 |
+| PT | Portugal | Weighted Mod-11 |
+| SE | Sweden | Luhn |
+| SG | Singapore | Format validation |
+| US | United States | - |
 
 ## Supported Addons
 
-| Addon | Key | Notes |
-|-------|-----|-------|
-| FacturaE v3 | `es-facturae-v3` | Spanish B2G format |
-| XRechnung v3 | `de-xrechnung-v3` | German B2G (auto-adds contact/payment fields) |
-| CFDI v4 | `mx-cfdi-v4` | Mexican e-invoicing (auto-applied for MX) |
+| Key | Country | Description |
+|-----|---------|-------------|
+| `ar-arca-v4` | AR | Argentina ARCA |
+| `br-nfe-v4` | BR | Brazilian NF-e |
+| `br-nfse-v1` | BR | Brazilian NFS-e |
+| `co-dian-v2` | CO | Colombian DIAN |
+| `de-xrechnung-v3` | DE | German XRechnung |
+| `de-zugferd-v2` | DE | German ZUGFeRD |
+| `es-facturae-v3` | ES | Spanish FacturaE |
+| `es-sii-v1` | ES | Spanish SII |
+| `es-tbai-v1` | ES | Basque TicketBAI |
+| `es-verifactu-v1` | ES | Spanish VeriFactu |
+| `eu-en16931-v2017` | EU | European EN16931 |
+| `fr-choruspro-v1` | FR | French Chorus Pro |
+| `fr-facturx-v1` | FR | French Factur-X |
+| `gr-mydata-v1` | GR | Greek MyData |
+| `it-sdi-v1` | IT | Italian SDI |
+| `mx-cfdi-v4` | MX | Mexican CFDI |
+| `pl-favat-v1` | PL | Polish FA_VAT |
+| `pt-saft-v1` | PT | Portuguese SAF-T |
 
 ## How It Works
 
-1. Reads the regime definition from GOBL (`tax.RegimeDefFor()`) to determine tax categories, rates, and currency
-2. Generates tax IDs with correct check digits using per-country algorithms
-3. Builds a valid invoice structure with realistic parties, line items, and payment details
-4. Wraps in a GOBL envelope which triggers `Calculate()` and `Validate()`
-5. Returns a fully calculated, valid envelope
-
-The only hardcoded data is locale content (company names, city names) for ES/DE/MX. All other regimes use a generic English fallback that still produces valid invoices.
+1. Reads the regime definition from GOBL to determine tax categories, rates, and currency.
+2. Generates tax IDs with correct check digits using per-country algorithms.
+3. Applies addon-specific extensions, identities, and structural requirements.
+4. Wraps in a GOBL envelope which triggers `Calculate()` and `Validate()`.
+5. Returns a fully calculated, valid envelope.
 
 ## Development
+
+This project uses [Mage](https://magefile.org/) for build automation:
 
 ```bash
 mage lint     # Run linter

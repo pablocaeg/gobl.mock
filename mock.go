@@ -54,8 +54,16 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		return nil, fmt.Errorf("unsupported regime: %s", country)
 	}
 
+	// Determine series format.
+	series := cbc.Code("MOCK")
+	if ac != nil && ac.Series != "" {
+		series = cbc.Code(ac.Series)
+	} else if ac != nil && ac.NumericSeries {
+		series = cbc.Code(fmt.Sprintf("%04d", r.IntN(9998)+1))
+	}
+
 	inv := &bill.Invoice{
-		Series:    "MOCK",
+		Series:    series,
 		Code:      cbc.Code(fmt.Sprintf("%05d", r.IntN(99999)+1)),
 		IssueDate: cal.Today(),
 		Currency:  regimeCurrency(country),
@@ -74,16 +82,27 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		inv.Tax = &bill.Tax{Ext: ac.InvoiceTaxExt(r)}
 	}
 
+	// Notes from addon.
+	if ac != nil && len(ac.Notes) > 0 {
+		inv.Notes = ac.Notes
+	}
+
 	inv.Supplier = buildParty(r, country, locale, locale.SupplierNames, ac, true)
 	if !o.Simplified {
 		inv.Customer = buildParty(r, country, locale, locale.CustomerNames, ac, false)
 	}
 	inv.Lines = buildLines(r, country, locale, ac, o.Lines)
-	inv.Payment = buildPayment(r, country, locale)
+	inv.Payment = buildPayment(r, country, locale, ac)
 
 	if ac != nil && ac.RequiresOrdering {
 		inv.Ordering = &bill.Ordering{
 			Code: cbc.Code(fmt.Sprintf("PO-%05d", r.IntN(99999)+1)),
+		}
+		// Some addons (AR ARCA) require a period on the ordering.
+		if ac.NumericSeries {
+			start := cal.Today().Add(0, -1, 0)
+			end := cal.Today()
+			inv.Ordering.Period = &cal.Period{Start: start, End: end}
 		}
 	}
 
@@ -131,6 +150,12 @@ func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, n
 		if ac.SupplierExt != nil {
 			p.Ext = ac.SupplierExt(r)
 		}
+		if ac.SupplierState != "" {
+			p.Addresses[0].State = ac.SupplierState
+		}
+		if ac.SupplierIdentities != nil {
+			p.Identities = ac.SupplierIdentities(r)
+		}
 		if ac.SupplierPeople {
 			p.People = []*org.Person{{
 				Name:   &org.Name{Given: "Test", Surname: "Person"},
@@ -147,8 +172,14 @@ func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, n
 		if ac.CustomerExt != nil {
 			p.Ext = ac.CustomerExt(r)
 		}
+		if ac.CustomerState != "" {
+			p.Addresses[0].State = ac.CustomerState
+		}
 		if ac.CustomerPostalCode != nil {
 			p.Addresses[0].Code = ac.CustomerPostalCode(r)
+		}
+		if ac.CustomerIdentities != nil {
+			p.Identities = ac.CustomerIdentities(r)
 		}
 		if ac.CustomerInboxes {
 			p.Inboxes = []*org.Inbox{{Email: "billing@customer.com"}}
@@ -189,10 +220,19 @@ func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac
 	}
 
 	combo := pickTaxCombo(r, country)
+	if ac != nil && ac.ComboExt != nil {
+		combo.Ext = ac.ComboExt(r)
+	}
+
+	taxes := tax.Set{combo}
+	if ac != nil && ac.ExtraCombos != nil {
+		taxes = append(taxes, ac.ExtraCombos(r)...)
+	}
+
 	line := &bill.Line{
 		Quantity: num.MakeAmount(int64(r.IntN(20)+1), 0),
 		Item:     lineItem,
-		Taxes:    tax.Set{combo},
+		Taxes:    taxes,
 	}
 
 	if r.IntN(5) == 0 {
@@ -202,7 +242,7 @@ func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac
 	return line
 }
 
-func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData) *bill.PaymentDetails {
+func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData, ac *addonConfig) *bill.PaymentDetails {
 	key := locale.PaymentKey
 	if key == "" {
 		key = pay.MeansKeyCreditTransfer
@@ -219,10 +259,26 @@ func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData) *bill
 			Name: "Bank Account",
 		}}
 	}
+	if ac != nil && ac.PaymentExt != nil {
+		instructions.Ext = ac.PaymentExt(r)
+	}
+
+	terms := &pay.Terms{Key: pay.TermKeyInstant, Notes: "Payment due upon receipt."}
+	if ac != nil && ac.RequiresDueDates {
+		due := cal.Today().Add(0, 1, 0)
+		pct, _ := num.PercentageFromString("100%")
+		terms = &pay.Terms{
+			Key: pay.TermKeyDueDate,
+			DueDates: []*pay.DueDate{{
+				Date:    &due,
+				Percent: &pct,
+			}},
+		}
+	}
 
 	return &bill.PaymentDetails{
 		Instructions: instructions,
-		Terms:        &pay.Terms{Key: pay.TermKeyInstant, Notes: "Payment due upon receipt."},
+		Terms:        terms,
 	}
 }
 

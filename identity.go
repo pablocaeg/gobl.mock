@@ -16,7 +16,7 @@ const (
 	esOrgTypes        = "ABCDEFGHJNPQRSUVW"
 	esOrgCheckLetters = "JABCDEFGHI"
 
-	ieCheckChars      = "WABCDEFGHIJKLMNOPQRSTUV"
+	ieCheckChars = "WABCDEFGHIJKLMNOPQRSTUV"
 )
 
 // knownTaxIDs provides fallback valid IDs from GOBL test files.
@@ -73,7 +73,7 @@ func generateTaxID(r *rand.Rand, country l10n.TaxCountryCode, isOrg bool) cbc.Co
 		return generateDETaxID(r)
 	case "DK":
 		return generateDKTaxID(r)
-	case "EL":
+	case "EL", "GR":
 		return generateGRTaxID(r)
 	case "ES":
 		if isOrg {
@@ -427,7 +427,6 @@ func generateESOrgTaxID(r *rand.Rand) cbc.Code {
 	sb.WriteByte(check)
 	return cbc.Code(sb.String())
 }
-
 
 // --- FR: SIREN Luhn + VAT mod-97 prefix ---
 
