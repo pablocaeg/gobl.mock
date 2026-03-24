@@ -95,11 +95,6 @@ func esFacturaeConfig(base *regimeConfig) *regimeConfig {
 	return &cfg
 }
 
-// esIRPFRate returns an IRPF retention tax rate for freelance invoices.
-func esIRPFRate() taxRate {
-	return taxRate{Category: cbc.Code("IRPF"), Rate: cbc.Key("pro")}
-}
-
 // esCorrectionExtensions returns the correction extension for FacturaE preceding references.
 func esCorrectionExtensions(_ *rand.Rand) tax.Extensions {
 	return tax.Extensions{

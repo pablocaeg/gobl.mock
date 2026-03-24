@@ -114,15 +114,6 @@ func pick[T any](r *rand.Rand, items []T) T {
 	return items[r.IntN(len(items))]
 }
 
-// pickN returns n random elements from a slice (with replacement).
-func pickN[T any](r *rand.Rand, items []T, n int) []T {
-	out := make([]T, n)
-	for i := range out {
-		out[i] = items[r.IntN(len(items))]
-	}
-	return out
-}
-
 func init() {
 	regimeConfigs[l10n.ES.Tax()] = esConfig()
 	regimeConfigs[l10n.DE.Tax()] = deConfig()

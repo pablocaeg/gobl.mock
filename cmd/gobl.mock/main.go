@@ -1,3 +1,4 @@
+// Package main provides the gobl.mock CLI tool.
 package main
 
 import (

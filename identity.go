@@ -75,7 +75,7 @@ func generateESOrgTaxID(r *rand.Rand) cbc.Code {
 	for _, d := range digits {
 		sb.WriteByte(byte('0' + d))
 	}
-	sb.WriteByte(byte(check))
+	sb.WriteByte(check)
 	return cbc.Code(sb.String())
 }
 

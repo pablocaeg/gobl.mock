@@ -141,7 +141,7 @@ func mxCFDIConfig(base *regimeConfig) *regimeConfig {
 	cfg.CustomerExt = func(r *rand.Rand) tax.Extensions {
 		return tax.Extensions{
 			"mx-cfdi-fiscal-regime": cbc.Code(pick(r, mxFiscalRegimes)),
-			"mx-cfdi-use":          cbc.Code(pick(r, mxCFDIUses)),
+			"mx-cfdi-use":           cbc.Code(pick(r, mxCFDIUses)),
 		}
 	}
 	cfg.ItemExt = func(r *rand.Rand) tax.Extensions {
