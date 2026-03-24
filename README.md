@@ -2,7 +2,7 @@
 
 Generate realistic, valid [GOBL](https://gobl.org) invoices for any supported tax regime.
 
-Released under the Apache 2.0 [LICENSE](https://github.com/pablocaeg/gobl.mock/blob/main/LICENSE), Copyright 2025 Pablo Carrasco.
+Released under the Apache 2.0 [LICENSE](https://github.com/pablocaeg/gobl.mock/blob/main/LICENSE).
 
 [![Lint](https://github.com/pablocaeg/gobl.mock/actions/workflows/lint.yaml/badge.svg)](https://github.com/pablocaeg/gobl.mock/actions/workflows/lint.yaml)
 [![Test](https://github.com/pablocaeg/gobl.mock/actions/workflows/test.yaml/badge.svg)](https://github.com/pablocaeg/gobl.mock/actions/workflows/test.yaml)
@@ -102,11 +102,13 @@ All regimes generate valid tax IDs with correct check digits.
 | `es-sii-v1` | ES | Spanish SII |
 | `es-tbai-v1` | ES | Basque TicketBAI |
 | `es-verifactu-v1` | ES | Spanish VeriFactu |
-| `eu-en16931-v2017` | EU | European EN16931 |
+| `eu-en16931-v2017` | EU | European EN16931 (use with any EU regime) |
 | `fr-choruspro-v1` | FR | French Chorus Pro |
+| `fr-ctc-flow2-v1` | FR | French B2B CTC |
 | `fr-facturx-v1` | FR | French Factur-X |
 | `gr-mydata-v1` | GR | Greek MyData |
 | `it-sdi-v1` | IT | Italian SDI |
+| `it-ticket-v1` | IT | Italian fiscal receipts |
 | `mx-cfdi-v4` | MX | Mexican CFDI |
 | `pl-favat-v1` | PL | Polish FA_VAT |
 | `pt-saft-v1` | PT | Portuguese SAF-T |

@@ -92,6 +92,30 @@ var addons = map[cbc.Key]*addonConfig{
 
 	// --- France ---
 	"fr-facturx-v1": {},
+	"fr-ctc-flow2-v1": {
+		InvoiceTaxExt: func(_ *rand.Rand) tax.Extensions {
+			return tax.Extensions{"fr-ctc-billing-mode": "B1"}
+		},
+		SupplierExt: func(_ *rand.Rand) tax.Extensions {
+			return tax.Extensions{"fr-choruspro-scheme": "1"}
+		},
+		CustomerExt: func(_ *rand.Rand) tax.Extensions {
+			return tax.Extensions{"fr-choruspro-scheme": "1"}
+		},
+		SupplierIdentities: func(_ *rand.Rand) []*org.Identity {
+			return []*org.Identity{{Type: "SIREN", Code: "732829320"}}
+		},
+		CustomerIdentities: func(_ *rand.Rand) []*org.Identity {
+			return []*org.Identity{{Type: "SIREN", Code: "356000000"}}
+		},
+		SupplierInboxes: true,
+		CustomerInboxes: true,
+		Notes: []*org.Note{
+			{Key: "payment", Text: "Flat-rate penalty of 40 EUR", Ext: tax.Extensions{"untdid-text-subject": "PMT"}},
+			{Key: "payment-method", Text: "Bank transfer", Ext: tax.Extensions{"untdid-text-subject": "PMD"}},
+			{Key: "payment-term", Text: "Net 30 days", Ext: tax.Extensions{"untdid-text-subject": "AAB"}},
+		},
+	},
 	"fr-choruspro-v1": {
 		SupplierExt: func(_ *rand.Rand) tax.Extensions {
 			return tax.Extensions{"fr-choruspro-scheme": "1"}
@@ -106,7 +130,8 @@ var addons = map[cbc.Key]*addonConfig{
 	},
 
 	// --- Italy ---
-	"it-sdi-v1": {},
+	"it-sdi-v1":    {},
+	"it-ticket-v1": {},
 
 	// --- Mexico ---
 	"mx-cfdi-v4": {
