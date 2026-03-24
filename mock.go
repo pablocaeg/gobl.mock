@@ -19,8 +19,8 @@ import (
 	"github.com/invopop/gobl/tax"
 	"github.com/invopop/gobl/uuid"
 
-	_ "github.com/invopop/gobl/addons"
-	_ "github.com/invopop/gobl/regimes"
+	_ "github.com/invopop/gobl/addons"  // register all addons
+	_ "github.com/invopop/gobl/regimes" // register all regimes
 )
 
 // Invoice generates a valid GOBL invoice for the given options.
@@ -202,7 +202,7 @@ func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac
 	return line
 }
 
-func buildPayment(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData) *bill.PaymentDetails {
+func buildPayment(r *rand.Rand, _ l10n.TaxCountryCode, locale *localeData) *bill.PaymentDetails {
 	key := locale.PaymentKey
 	if key == "" {
 		key = pay.MeansKeyCreditTransfer
@@ -226,7 +226,7 @@ func buildPayment(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData)
 	}
 }
 
-func applyCreditNote(r *rand.Rand, inv *bill.Invoice, addon cbc.Key, ac *addonConfig) {
+func applyCreditNote(r *rand.Rand, inv *bill.Invoice, _ cbc.Key, ac *addonConfig) {
 	inv.Type = bill.InvoiceTypeCreditNote
 	yesterday := cal.Today().Add(0, 0, -1)
 

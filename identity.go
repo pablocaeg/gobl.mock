@@ -15,7 +15,7 @@ const (
 	esCheckLetters    = "TRWAGMYFPDXBNJZSQVHLCKE"
 	esOrgTypes        = "ABCDEFGHJNPQRSUVW"
 	esOrgCheckLetters = "JABCDEFGHI"
-	esForeignerTypes  = "XYZ"
+
 	ieCheckChars      = "WABCDEFGHIJKLMNOPQRSTUV"
 )
 
@@ -164,25 +164,24 @@ func generateARTaxID(r *rand.Rand, isOrg bool) cbc.Code {
 	prefix := pick(r, prefixes)
 	multipliers := []int{5, 4, 3, 2, 7, 6, 5, 4, 3, 2}
 
-	for {
-		body := randomDigits(r, 8)
-		digits := make([]int, 10)
-		digits[0] = int(prefix[0] - '0')
-		digits[1] = int(prefix[1] - '0')
-		copy(digits[2:], body)
+	body := randomDigits(r, 8)
+	digits := make([]int, 10)
+	digits[0] = int(prefix[0] - '0')
+	digits[1] = int(prefix[1] - '0')
+	copy(digits[2:], body)
 
-		sum := 0
-		for i := 0; i < 10; i++ {
-			sum += digits[i] * multipliers[i]
-		}
-		check := 11 - (sum % 11)
-		if check == 11 {
-			check = 0
-		} else if check == 10 {
-			check = 9
-		}
-		return cbc.Code(prefix + digitsToString(body) + strconv.Itoa(check))
+	sum := 0
+	for i := 0; i < 10; i++ {
+		sum += digits[i] * multipliers[i]
 	}
+	check := 11 - (sum % 11)
+	switch check {
+	case 11:
+		check = 0
+	case 10:
+		check = 9
+	}
+	return cbc.Code(prefix + digitsToString(body) + strconv.Itoa(check))
 }
 
 // --- AT: Luhn+4 offset, format U + 8 digits ---
@@ -334,9 +333,10 @@ func generateCZTaxID(r *rand.Rand) cbc.Code {
 			sum += digits[i] * w
 		}
 		check := 11 - (sum % 11)
-		if check == 10 {
+		switch check {
+		case 10:
 			check = 0
-		} else if check == 11 {
+		case 11:
 			check = 1
 		}
 		if check > 9 {
@@ -428,14 +428,6 @@ func generateESOrgTaxID(r *rand.Rand) cbc.Code {
 	return cbc.Code(sb.String())
 }
 
-func generateESForeignerTaxID(r *rand.Rand) cbc.Code {
-	typeIdx := r.IntN(len(esForeignerTypes))
-	typeLetter := esForeignerTypes[typeIdx]
-	number := r.IntN(10000000)
-	composite := typeIdx*10000000 + number
-	check := esCheckLetters[composite%23]
-	return cbc.Code(fmt.Sprintf("%c%07d%c", typeLetter, number, check))
-}
 
 // --- FR: SIREN Luhn + VAT mod-97 prefix ---
 
@@ -525,7 +517,6 @@ func generateIETaxID(r *rand.Rand) cbc.Code {
 
 func generateINTaxID(r *rand.Rand) cbc.Code {
 	const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	const alnum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	const nonzeroAlnum = "123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 	// Format: 2 digits + 5 upper + 4 digits + 1 upper + 1 nonzero-alnum + 'Z' + check
