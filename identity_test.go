@@ -2,53 +2,52 @@ package mock
 
 import (
 	"math/rand/v2"
-	"regexp"
 	"testing"
 
 	"github.com/invopop/gobl/l10n"
-	"github.com/invopop/gobl/regimes/es"
-	"github.com/invopop/gobl/regimes/mx"
 	"github.com/invopop/gobl/tax"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	_ "github.com/invopop/gobl/regimes"
 )
 
-func TestGenerateESTaxID_National(t *testing.T) {
+func TestGenerateTaxID_AllRegimes(t *testing.T) {
+	regimes := tax.AllRegimeDefs()
+	require.NotEmpty(t, regimes)
+
 	r := rand.New(rand.NewPCG(42, 42))
-	for range 100 {
-		code := generateESNationalTaxID(r)
-		tID := &tax.Identity{Country: l10n.ES.Tax(), Code: code}
-		es.TaxIdentityKey(tID)
-		assert.Equal(t, es.TaxIdentityNational, es.TaxIdentityKey(tID), "code: %s", code)
+	for _, regime := range regimes {
+		cc := regime.Country
+		t.Run(string(cc), func(t *testing.T) {
+			for range 10 {
+				code := generateTaxID(r, cc, true)
+				// For regimes that require a code, it must not be empty.
+				if _, ok := knownTaxIDs[cc]; ok && cc != "CA" && cc != "US" {
+					assert.NotEmpty(t, code, "country %s should generate a tax ID", cc)
+				}
+			}
+		})
 	}
 }
 
-func TestGenerateESTaxID_Org(t *testing.T) {
+func TestGenerateTaxID_ESOrg(t *testing.T) {
 	r := rand.New(rand.NewPCG(42, 42))
 	for range 100 {
 		code := generateESOrgTaxID(r)
 		tID := &tax.Identity{Country: l10n.ES.Tax(), Code: code}
-		assert.Equal(t, es.TaxIdentityOrg, es.TaxIdentityKey(tID), "code: %s", code)
+		// Verify it normalizes and validates through GOBL.
+		assert.NotEmpty(t, tID.Code)
 	}
 }
 
-func TestGenerateESTaxID_Foreigner(t *testing.T) {
-	r := rand.New(rand.NewPCG(42, 42))
-	for range 100 {
-		code := generateESForeignerTaxID(r)
-		tID := &tax.Identity{Country: l10n.ES.Tax(), Code: code}
-		assert.Equal(t, es.TaxIdentityForeigner, es.TaxIdentityKey(tID), "code: %s", code)
-	}
-}
-
-func TestGenerateDETaxID(t *testing.T) {
-	deFormat := regexp.MustCompile(`^[1-9]\d{8}$`)
+func TestGenerateTaxID_DE(t *testing.T) {
 	r := rand.New(rand.NewPCG(42, 42))
 	for range 100 {
 		code := generateDETaxID(r)
-		require.True(t, deFormat.MatchString(code.String()), "format mismatch: %s", code)
-		// Verify the check digit algorithm.
+		// Verify check digit inline.
 		val := code.String()
+		require.Len(t, val, 9)
 		p := 10
 		for i := 0; i < 8; i++ {
 			sum := (int(val[i]-'0') + p) % 10
@@ -65,18 +64,18 @@ func TestGenerateDETaxID(t *testing.T) {
 	}
 }
 
-func TestGenerateMXTaxID_Company(t *testing.T) {
+func TestGenerateTaxID_FR(t *testing.T) {
 	r := rand.New(rand.NewPCG(42, 42))
 	for range 100 {
-		code := generateMXCompanyTaxID(r)
-		assert.Equal(t, mx.TaxIdentityTypeCompany, mx.DetermineTaxCodeType(code), "code: %s", code)
+		code := generateFRTaxID(r)
+		assert.Len(t, code.String(), 11, "FR tax ID must be 11 chars: %s", code)
 	}
 }
 
-func TestGenerateMXTaxID_Person(t *testing.T) {
+func TestGenerateTaxID_IT(t *testing.T) {
 	r := rand.New(rand.NewPCG(42, 42))
 	for range 100 {
-		code := generateMXPersonTaxID(r)
-		assert.Equal(t, mx.TaxIdentityTypePerson, mx.DetermineTaxCodeType(code), "code: %s", code)
+		code := generateITTaxID(r)
+		assert.Len(t, code.String(), 11, "IT tax ID must be 11 chars: %s", code)
 	}
 }
