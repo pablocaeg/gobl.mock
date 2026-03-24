@@ -44,7 +44,6 @@ var knownTaxIDs = map[l10n.TaxCountryCode][]cbc.Code{
 	"PT": {"999999990", "545259045"},
 	"SE": {"556036079301", "556703748501"},
 	"SG": {"M91234567X", "199912345A"},
-	"US": {},
 }
 
 // generateTaxID generates a valid tax identity code for the given country.

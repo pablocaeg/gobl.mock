@@ -1,6 +1,7 @@
 package mock_test
 
 import (
+	"fmt"
 	"testing"
 
 	mock "github.com/pablocaeg/gobl.mock"
@@ -47,7 +48,7 @@ func TestEnvelope_AllRegimes(t *testing.T) {
 func TestEnvelope_AllRegimes_MultipleSeeds(t *testing.T) {
 	for _, cc := range allRegimes {
 		for _, seed := range []int64{1, 42, 100, 999, 12345} {
-			t.Run(string(cc), func(t *testing.T) {
+			t.Run(fmt.Sprintf("%s/seed=%d", cc, seed), func(t *testing.T) {
 				env, err := mock.Envelope(mock.WithRegime(cc), mock.WithSeed(seed))
 				require.NoError(t, err)
 				require.NoError(t, env.Validate())
@@ -163,8 +164,14 @@ func TestInvoice_Seed(t *testing.T) {
 	assert.Equal(t, inv1.Supplier.TaxID.Code, inv2.Supplier.TaxID.Code)
 }
 
+func TestInvoice_WithCredit(t *testing.T) {
+	inv, err := mock.Invoice(mock.WithRegime(l10n.ES.Tax()), mock.WithCredit(), mock.WithSeed(42))
+	require.NoError(t, err)
+	assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
+	assert.NotEmpty(t, inv.Preceding)
+}
+
 func TestInvoice_UnsupportedRegime(t *testing.T) {
 	_, err := mock.Invoice(mock.WithRegime("ZZ"))
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "unsupported regime")
+	assert.ErrorContains(t, err, "unsupported regime")
 }

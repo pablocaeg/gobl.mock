@@ -24,6 +24,7 @@ import (
 )
 
 // Invoice generates a valid GOBL invoice for the given options.
+// It is safe for concurrent use from multiple goroutines.
 func Invoice(opts ...Option) (*bill.Invoice, error) {
 	env, err := Envelope(opts...)
 	if err != nil {
@@ -37,6 +38,7 @@ func Invoice(opts ...Option) (*bill.Invoice, error) {
 }
 
 // Envelope generates a valid GOBL envelope containing an invoice.
+// It is safe for concurrent use from multiple goroutines.
 func Envelope(opts ...Option) (*gobl.Envelope, error) {
 	o := defaultOptions()
 	for _, opt := range opts {
@@ -327,7 +329,9 @@ func buildLines(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, a
 
 func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac *addonConfig) *bill.Line {
 	// Build a pool of available items from products and services.
-	items := append(locale.Products, locale.Services...)
+	items := make([]itemData, 0, len(locale.Products)+len(locale.Services))
+	items = append(items, locale.Products...)
+	items = append(items, locale.Services...)
 	item := pick(r, items)
 
 	price, _ := num.AmountFromString(item.Price)
@@ -464,6 +468,10 @@ var itemIdentities = map[l10n.TaxCountryCode]func(r *rand.Rand) []*org.Identity{
 }
 
 func pick[T any](r *rand.Rand, items []T) T {
+	if len(items) == 0 {
+		var zero T
+		return zero
+	}
 	return items[r.IntN(len(items))]
 }
 
