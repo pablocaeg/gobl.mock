@@ -16,27 +16,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var allRegimes = []l10n.TaxCountryCode{
-	"AE", "AR", "AT", "BE", "BR", "CA", "CH", "CO", "DE", "DK",
-	"ES", "FR", "GB", "GR", "IE", "IN", "IT", "MX", "NL", "PL",
-	"PT", "SE", "SG", "US",
-}
-
-var allAddons = []struct {
-	regime l10n.TaxCountryCode
-	addon  cbc.Key
-}{
-	{"AR", "ar-arca-v4"}, {"BR", "br-nfe-v4"}, {"BR", "br-nfse-v1"},
-	{"CO", "co-dian-v2"}, {"DE", "de-xrechnung-v3"}, {"DE", "de-zugferd-v2"},
-	{"ES", "es-facturae-v3"}, {"ES", "es-sii-v1"}, {"ES", "es-tbai-v1"}, {"ES", "es-verifactu-v1"},
-	{"FR", "fr-choruspro-v1"}, {"FR", "fr-ctc-flow2-v1"}, {"FR", "fr-facturx-v1"},
-	{"DE", "eu-en16931-v2017"},
-	{"GR", "gr-mydata-v1"}, {"IT", "it-sdi-v1"}, {"IT", "it-ticket-v1"},
-	{"MX", "mx-cfdi-v4"}, {"PL", "pl-favat-v1"}, {"PT", "pt-saft-v1"},
-}
-
+// TestEnvelope_AllRegimes validates every GOBL regime using the
+// auto-generated regime list from go generate.
 func TestEnvelope_AllRegimes(t *testing.T) {
-	for _, cc := range allRegimes {
+	for _, cc := range generatedRegimes {
 		t.Run(string(cc), func(t *testing.T) {
 			env, err := mock.Envelope(mock.WithRegime(cc), mock.WithSeed(42))
 			require.NoError(t, err)
@@ -45,8 +28,10 @@ func TestEnvelope_AllRegimes(t *testing.T) {
 	}
 }
 
+// TestEnvelope_AllRegimes_MultipleSeeds verifies that different random
+// seeds all produce valid invoices for every regime.
 func TestEnvelope_AllRegimes_MultipleSeeds(t *testing.T) {
-	for _, cc := range allRegimes {
+	for _, cc := range generatedRegimes {
 		for _, seed := range []int64{1, 42, 100, 999, 12345} {
 			t.Run(fmt.Sprintf("%s/seed=%d", cc, seed), func(t *testing.T) {
 				env, err := mock.Envelope(mock.WithRegime(cc), mock.WithSeed(seed))
@@ -57,12 +42,14 @@ func TestEnvelope_AllRegimes_MultipleSeeds(t *testing.T) {
 	}
 }
 
+// TestEnvelope_AllAddons validates every GOBL addon using the
+// auto-generated addon list from go generate.
 func TestEnvelope_AllAddons(t *testing.T) {
-	for _, tc := range allAddons {
-		t.Run(string(tc.regime)+"+"+string(tc.addon), func(t *testing.T) {
+	for _, tc := range generatedAddons {
+		t.Run(string(tc.Regime)+"+"+string(tc.Key), func(t *testing.T) {
 			env, err := mock.Envelope(
-				mock.WithRegime(tc.regime),
-				mock.WithAddon(tc.addon),
+				mock.WithRegime(tc.Regime),
+				mock.WithAddon(tc.Key),
 				mock.WithSeed(42),
 			)
 			require.NoError(t, err)
@@ -71,8 +58,9 @@ func TestEnvelope_AllAddons(t *testing.T) {
 	}
 }
 
+// TestEnvelope_CreditNote_AllRegimes verifies credit notes for every regime.
 func TestEnvelope_CreditNote_AllRegimes(t *testing.T) {
-	for _, cc := range allRegimes {
+	for _, cc := range generatedRegimes {
 		t.Run(string(cc), func(t *testing.T) {
 			env, err := mock.Envelope(
 				mock.WithRegime(cc),
@@ -108,6 +96,13 @@ func TestInvoice_Types(t *testing.T) {
 	}
 }
 
+func TestInvoice_WithCredit(t *testing.T) {
+	inv, err := mock.Invoice(mock.WithRegime(l10n.ES.Tax()), mock.WithCredit(), mock.WithSeed(42))
+	require.NoError(t, err)
+	assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
+	assert.NotEmpty(t, inv.Preceding)
+}
+
 func TestInvoice_Template(t *testing.T) {
 	price := num.MakeAmount(999, 2)
 	tmpl := &bill.Invoice{
@@ -134,7 +129,6 @@ func TestInvoice_Template(t *testing.T) {
 	assert.Equal(t, "Custom Customer S.L.", inv.Customer.Name)
 	assert.Len(t, inv.Lines, 1)
 	assert.Equal(t, "Custom item", inv.Lines[0].Item.Name)
-	// Supplier should still be generated.
 	assert.NotEmpty(t, inv.Supplier.Name)
 }
 
@@ -162,13 +156,6 @@ func TestInvoice_Seed(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, inv1.Supplier.Name, inv2.Supplier.Name)
 	assert.Equal(t, inv1.Supplier.TaxID.Code, inv2.Supplier.TaxID.Code)
-}
-
-func TestInvoice_WithCredit(t *testing.T) {
-	inv, err := mock.Invoice(mock.WithRegime(l10n.ES.Tax()), mock.WithCredit(), mock.WithSeed(42))
-	require.NoError(t, err)
-	assert.Equal(t, bill.InvoiceTypeCreditNote, inv.Type)
-	assert.NotEmpty(t, inv.Preceding)
 }
 
 func TestInvoice_UnsupportedRegime(t *testing.T) {

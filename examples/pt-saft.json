@@ -1,0 +1,192 @@
+{
+  "$schema": "https://gobl.org/draft-0/envelope",
+  "head": {
+    "uuid": "019d2239-825a-7084-b765-3b84aaf91e9c",
+    "dig": {
+      "alg": "sha256",
+      "val": "2cf5d29b81602af8b4b65c19b9bc02479d889889f0c3d87118f2166b7710303b"
+    }
+  },
+  "doc": {
+    "$schema": "https://gobl.org/draft-0/bill/invoice",
+    "$regime": "PT",
+    "$addons": [
+      "pt-saft-v1"
+    ],
+    "uuid": "019d2239-825a-7088-a88b-4da1931af090",
+    "type": "standard",
+    "series": "FT MOCK",
+    "code": "61929",
+    "issue_date": "2026-03-24",
+    "value_date": "2026-03-24",
+    "currency": "EUR",
+    "tax": {
+      "ext": {
+        "pt-saft-invoice-type": "FT",
+        "pt-saft-source": "P"
+      }
+    },
+    "supplier": {
+      "name": "Prime Industries",
+      "tax_id": {
+        "country": "PT",
+        "code": "592278409"
+      },
+      "addresses": [
+        {
+          "num": "129",
+          "street": "Commerce Avenue",
+          "locality": "Commerce District",
+          "code": "20001",
+          "country": "PT"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "customer": {
+      "name": "National Retail Corp.",
+      "tax_id": {
+        "country": "PT",
+        "code": "396942300"
+      },
+      "addresses": [
+        {
+          "num": "71",
+          "street": "Main Street",
+          "locality": "Business Center",
+          "code": "30001",
+          "country": "PT"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "lines": [
+      {
+        "i": 1,
+        "quantity": "18",
+        "item": {
+          "name": "LED monitor",
+          "price": "400.00",
+          "unit": "one",
+          "ext": {
+            "pt-saft-product-type": "S"
+          }
+        },
+        "sum": "7200.00",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "standard",
+            "rate": "general",
+            "percent": "23.0%",
+            "ext": {
+              "pt-region": "PT",
+              "pt-saft-tax-rate": "NOR"
+            }
+          }
+        ],
+        "total": "7200.00"
+      },
+      {
+        "i": 2,
+        "quantity": "8",
+        "item": {
+          "name": "Professional laptop",
+          "price": "1200.00",
+          "unit": "one",
+          "ext": {
+            "pt-saft-product-type": "S"
+          }
+        },
+        "sum": "9600.00",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "standard",
+            "rate": "general",
+            "percent": "23.0%",
+            "ext": {
+              "pt-region": "PT",
+              "pt-saft-tax-rate": "NOR"
+            }
+          }
+        ],
+        "total": "9600.00"
+      },
+      {
+        "i": 3,
+        "quantity": "10",
+        "item": {
+          "name": "IT consulting",
+          "price": "120.00",
+          "unit": "h",
+          "ext": {
+            "pt-saft-product-type": "S"
+          }
+        },
+        "sum": "1200.00",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "standard",
+            "rate": "general",
+            "percent": "23.0%",
+            "ext": {
+              "pt-region": "PT",
+              "pt-saft-tax-rate": "NOR"
+            }
+          }
+        ],
+        "total": "1200.00"
+      }
+    ],
+    "payment": {
+      "terms": {
+        "key": "instant",
+        "notes": "Payment due upon receipt."
+      },
+      "instructions": {
+        "key": "credit-transfer",
+        "ext": {
+          "pt-saft-payment-means": "TB"
+        }
+      }
+    },
+    "totals": {
+      "sum": "18000.00",
+      "total": "18000.00",
+      "taxes": {
+        "categories": [
+          {
+            "code": "VAT",
+            "rates": [
+              {
+                "key": "standard",
+                "ext": {
+                  "pt-region": "PT",
+                  "pt-saft-tax-rate": "NOR"
+                },
+                "base": "18000.00",
+                "percent": "23.0%",
+                "amount": "4140.00"
+              }
+            ],
+            "amount": "4140.00"
+          }
+        ],
+        "sum": "4140.00"
+      },
+      "tax": "4140.00",
+      "total_with_tax": "22140.00",
+      "payable": "22140.00"
+    }
+  }
+}

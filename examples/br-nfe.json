@@ -1,0 +1,259 @@
+{
+  "$schema": "https://gobl.org/draft-0/envelope",
+  "head": {
+    "uuid": "019d2239-8259-70da-9f0d-a02a11576cda",
+    "dig": {
+      "alg": "sha256",
+      "val": "e937e012ddbd8630b945617443af5cb9ca8df444e42daea06f5d5d59687ba01b"
+    }
+  },
+  "doc": {
+    "$schema": "https://gobl.org/draft-0/bill/invoice",
+    "$regime": "BR",
+    "$addons": [
+      "br-nfe-v4"
+    ],
+    "uuid": "019d2239-8259-70e2-9f24-65b643dcf908",
+    "type": "standard",
+    "series": "1",
+    "code": "61929",
+    "issue_date": "2026-03-24",
+    "currency": "BRL",
+    "tax": {
+      "ext": {
+        "br-nfe-model": "55",
+        "br-nfe-presence": "1"
+      }
+    },
+    "supplier": {
+      "name": "Atlas Consulting",
+      "tax_id": {
+        "country": "BR",
+        "code": "22784006913968"
+      },
+      "identities": [
+        {
+          "key": "br-nfe-state-reg",
+          "code": "110042490114"
+        }
+      ],
+      "addresses": [
+        {
+          "num": "183",
+          "street": "Main Street",
+          "locality": "Commerce District",
+          "state": "SP",
+          "code": "63810-512",
+          "country": "BR"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ],
+      "ext": {
+        "br-ibge-municipality": "3550308"
+      }
+    },
+    "customer": {
+      "name": "National Retail Corp.",
+      "tax_id": {
+        "country": "BR",
+        "code": "23380354688718"
+      },
+      "addresses": [
+        {
+          "num": "198",
+          "street": "Industrial Boulevard",
+          "locality": "Commerce District",
+          "state": "SP",
+          "code": "28038-344",
+          "country": "BR"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ],
+      "ext": {
+        "br-ibge-municipality": "3550308"
+      }
+    },
+    "lines": [
+      {
+        "i": 1,
+        "quantity": "20",
+        "item": {
+          "name": "Software development",
+          "price": "100.00",
+          "unit": "h",
+          "ext": {
+            "br-nfe-cfop": "5102"
+          }
+        },
+        "sum": "2000.00",
+        "taxes": [
+          {
+            "cat": "IPI",
+            "percent": "10%"
+          },
+          {
+            "cat": "ICMS",
+            "percent": "18%"
+          },
+          {
+            "cat": "PIS",
+            "percent": "1.65%"
+          },
+          {
+            "cat": "COFINS",
+            "percent": "7.60%"
+          }
+        ],
+        "total": "2000.00"
+      },
+      {
+        "i": 2,
+        "quantity": "1",
+        "item": {
+          "name": "IT consulting",
+          "price": "120.00",
+          "unit": "h",
+          "ext": {
+            "br-nfe-cfop": "5102"
+          }
+        },
+        "sum": "120.00",
+        "taxes": [
+          {
+            "cat": "IPI",
+            "percent": "10%"
+          },
+          {
+            "cat": "ICMS",
+            "percent": "18%"
+          },
+          {
+            "cat": "PIS",
+            "percent": "1.65%"
+          },
+          {
+            "cat": "COFINS",
+            "percent": "7.60%"
+          }
+        ],
+        "total": "120.00"
+      },
+      {
+        "i": 3,
+        "quantity": "17",
+        "item": {
+          "name": "LED monitor",
+          "price": "400.00",
+          "ext": {
+            "br-nfe-cfop": "5102"
+          }
+        },
+        "sum": "6800.00",
+        "taxes": [
+          {
+            "cat": "IPI",
+            "percent": "10%"
+          },
+          {
+            "cat": "ICMS",
+            "percent": "18%"
+          },
+          {
+            "cat": "PIS",
+            "percent": "1.65%"
+          },
+          {
+            "cat": "COFINS",
+            "percent": "7.60%"
+          }
+        ],
+        "total": "6800.00"
+      }
+    ],
+    "payment": {
+      "terms": {
+        "key": "instant",
+        "notes": "Payment due upon receipt."
+      },
+      "instructions": {
+        "key": "credit-transfer",
+        "ext": {
+          "br-nfe-payment-means": "18"
+        }
+      }
+    },
+    "totals": {
+      "sum": "8920.00",
+      "total": "8920.00",
+      "taxes": {
+        "categories": [
+          {
+            "code": "IPI",
+            "rates": [
+              {
+                "base": "8920.00",
+                "percent": "10%",
+                "amount": "892.00"
+              }
+            ],
+            "amount": "892.00"
+          },
+          {
+            "code": "ICMS",
+            "informative": true,
+            "rates": [
+              {
+                "base": "8920.00",
+                "percent": "18%",
+                "amount": "1605.60"
+              }
+            ],
+            "amount": "1605.60"
+          },
+          {
+            "code": "PIS",
+            "informative": true,
+            "rates": [
+              {
+                "base": "8920.00",
+                "percent": "1.65%",
+                "amount": "147.18"
+              }
+            ],
+            "amount": "147.18"
+          },
+          {
+            "code": "COFINS",
+            "informative": true,
+            "rates": [
+              {
+                "base": "8920.00",
+                "percent": "7.60%",
+                "amount": "677.92"
+              }
+            ],
+            "amount": "677.92"
+          }
+        ],
+        "sum": "892.00"
+      },
+      "tax": "892.00",
+      "total_with_tax": "9812.00",
+      "payable": "9812.00"
+    },
+    "notes": [
+      {
+        "key": "reason",
+        "text": "Venda de mercadoria"
+      }
+    ]
+  }
+}

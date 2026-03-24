@@ -1,0 +1,143 @@
+{
+  "$schema": "https://gobl.org/draft-0/envelope",
+  "head": {
+    "uuid": "019d2239-825a-7c83-b128-0e3fb74b6ec7",
+    "dig": {
+      "alg": "sha256",
+      "val": "c6726ad70e186dd4efc21fe31b570667ad5ce7ac2622aa10ee0343c966da5491"
+    }
+  },
+  "doc": {
+    "$schema": "https://gobl.org/draft-0/bill/invoice",
+    "$regime": "US",
+    "uuid": "019d2239-825a-7c8a-80cf-7f365e5b8528",
+    "type": "standard",
+    "series": "MOCK",
+    "code": "61929",
+    "issue_date": "2026-03-24",
+    "currency": "USD",
+    "supplier": {
+      "name": "Prime Industries",
+      "tax_id": {
+        "country": "US"
+      },
+      "addresses": [
+        {
+          "num": "192",
+          "street": "Industrial Boulevard",
+          "locality": "Commerce District",
+          "code": "20001",
+          "country": "US"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "customer": {
+      "name": "Metro Supply Chain Ltd.",
+      "tax_id": {
+        "country": "US"
+      },
+      "addresses": [
+        {
+          "num": "164",
+          "street": "Market Street",
+          "locality": "Capital City",
+          "code": "10001",
+          "country": "US"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "lines": [
+      {
+        "i": 1,
+        "quantity": "2",
+        "item": {
+          "name": "IT consulting",
+          "price": "120.00",
+          "unit": "h"
+        },
+        "sum": "240.00",
+        "taxes": [
+          {
+            "cat": "ST",
+            "percent": "10%"
+          }
+        ],
+        "total": "240.00"
+      },
+      {
+        "i": 2,
+        "quantity": "13",
+        "item": {
+          "name": "Professional laptop",
+          "price": "1200.00"
+        },
+        "sum": "15600.00",
+        "taxes": [
+          {
+            "cat": "ST",
+            "percent": "10%"
+          }
+        ],
+        "total": "15600.00"
+      },
+      {
+        "i": 3,
+        "quantity": "4",
+        "item": {
+          "name": "Monthly hosting",
+          "price": "50.00"
+        },
+        "sum": "200.00",
+        "taxes": [
+          {
+            "cat": "ST",
+            "percent": "10%"
+          }
+        ],
+        "total": "200.00"
+      }
+    ],
+    "payment": {
+      "terms": {
+        "key": "instant",
+        "notes": "Payment due upon receipt."
+      },
+      "instructions": {
+        "key": "credit-transfer"
+      }
+    },
+    "totals": {
+      "sum": "16040.00",
+      "total": "16040.00",
+      "taxes": {
+        "categories": [
+          {
+            "code": "ST",
+            "rates": [
+              {
+                "base": "16040.00",
+                "percent": "10%",
+                "amount": "1604.00"
+              }
+            ],
+            "amount": "1604.00"
+          }
+        ],
+        "sum": "1604.00"
+      },
+      "tax": "1604.00",
+      "total_with_tax": "17644.00",
+      "payable": "17644.00"
+    }
+  }
+}

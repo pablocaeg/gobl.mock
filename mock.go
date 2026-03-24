@@ -1,4 +1,6 @@
 // Package mock generates realistic, valid GOBL invoices for any supported tax regime.
+//
+//go:generate go run ./internal/generate/main.go
 package mock
 
 import (
@@ -235,8 +237,10 @@ func applyTemplate(inv *bill.Invoice, tmpl *bill.Invoice) {
 	}
 }
 
-// resolveAddonConfig returns the addon config, falling back to dynamic
-// resolution for unknown addons.
+// resolveAddonConfig returns the addon config for a known addon, or builds
+// a dynamic config for unknown addons by reading extension definitions from
+// GOBL. Scenarios handle most extension auto-setting; the dynamic fallback
+// provides first-valid-value defaults for extensions not covered by scenarios.
 func resolveAddonConfig(addon cbc.Key) *addonConfig {
 	if addon == "" {
 		return nil
@@ -244,9 +248,32 @@ func resolveAddonConfig(addon cbc.Key) *addonConfig {
 	if ac, ok := addons[addon]; ok {
 		return ac
 	}
-	// Dynamic fallback: unknown addon, return empty config.
-	// Scenarios will handle most extension auto-setting.
-	return &addonConfig{}
+	return buildDynamicAddonConfig(addon)
+}
+
+func buildDynamicAddonConfig(addon cbc.Key) *addonConfig {
+	ad := tax.AddonForKey(addon)
+	if ad == nil {
+		return &addonConfig{}
+	}
+
+	// Read extension definitions and pick the first valid value for each.
+	// These are set on invoice.tax.ext where scenarios can override them.
+	ext := make(tax.Extensions)
+	for _, def := range ad.Extensions {
+		if len(def.Values) > 0 {
+			ext[def.Key] = def.Values[0].Code
+		}
+	}
+
+	if len(ext) == 0 {
+		return &addonConfig{}
+	}
+	return &addonConfig{
+		InvoiceTaxExt: func(_ *rand.Rand) tax.Extensions {
+			return ext
+		},
+	}
 }
 
 func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, names []string, ac *addonConfig, isSupplier bool) *org.Party {
@@ -268,7 +295,7 @@ func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, n
 			Locality: city.Name,
 			Region:   city.Region,
 			Code:     postalCode,
-			Country:  l10n.ISOCountryCode(country),
+			Country:  isoCountry(country),
 		}},
 		Emails: []*org.Email{{Address: "billing@example.com"}},
 	}
@@ -450,6 +477,15 @@ func pickTaxCombo(country l10n.TaxCountryCode) *tax.Combo {
 
 	pct := num.MakePercentage(10, 2)
 	return &tax.Combo{Category: primary.Code, Percent: &pct}
+}
+
+// isoCountry converts a tax country code to an ISO country code.
+// Most are identical, but Greece uses "EL" for tax and "GR" for ISO.
+func isoCountry(tc l10n.TaxCountryCode) l10n.ISOCountryCode {
+	if tc == "EL" {
+		return "GR"
+	}
+	return l10n.ISOCountryCode(tc)
 }
 
 var postalCodeFormats = map[l10n.TaxCountryCode]func(r *rand.Rand) cbc.Code{

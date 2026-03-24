@@ -251,7 +251,11 @@ var addons = map[cbc.Key]*addonConfig{
 	},
 
 	// --- Poland ---
-	"pl-favat-v1": {},
+	"pl-favat-v3": {
+		ComboExt: func(_ *rand.Rand) tax.Extensions {
+			return tax.Extensions{"pl-favat-tax-category": "7"}
+		},
+	},
 
 	// --- Portugal ---
 	"pt-saft-v1": {
