@@ -32,9 +32,6 @@ type addonConfig struct {
 	// Extra tax combos added to every line (e.g. BR NF-e requires ICMS+PIS+COFINS).
 	ExtraCombos func(r *rand.Rand) tax.Set
 
-	// Item identities (e.g. BR NFS-e requires service code).
-	ItemIdentities func(r *rand.Rand) []*org.Identity
-
 	// Series override (some addons require specific series formats).
 	Series string
 

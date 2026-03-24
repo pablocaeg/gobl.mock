@@ -43,9 +43,13 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		opt(o)
 	}
 
+	if o.lines < 1 {
+		o.lines = 1
+	}
+
 	r := newRand(o)
-	country := o.Regime
-	addon := resolveAddon(country, o.Addon)
+	country := o.regime
+	addon := resolveAddon(country, o.addon)
 	locale := getLocale(country)
 	ac := resolveAddonConfig(addon)
 
@@ -57,13 +61,13 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 	inv := buildInvoice(r, o, country, addon, locale, ac)
 
 	// Apply template overrides if provided.
-	if o.Template != nil {
-		applyTemplate(inv, o.Template)
+	if o.template != nil {
+		applyTemplate(inv, o.template)
 	}
 
 	// Apply invoice type (standard, credit-note, corrective, debit-note, proforma).
-	if o.Type != "" {
-		applyInvoiceType(r, inv, o.Type, addon, ac, regime)
+	if o.invType != "" {
+		applyInvoiceType(r, inv, o.invType, addon, ac, regime)
 	}
 
 	env, err := gobl.Envelop(inv)
@@ -73,7 +77,7 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 	return env, nil
 }
 
-func buildInvoice(r *rand.Rand, o *Options, country l10n.TaxCountryCode, addon cbc.Key, locale *localeData, ac *addonConfig) *bill.Invoice {
+func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon cbc.Key, locale *localeData, ac *addonConfig) *bill.Invoice {
 	series := cbc.Code("MOCK")
 	if ac != nil && ac.Series != "" {
 		series = cbc.Code(ac.Series)
@@ -92,7 +96,7 @@ func buildInvoice(r *rand.Rand, o *Options, country l10n.TaxCountryCode, addon c
 	if addon != "" {
 		inv.SetAddons(addon)
 	}
-	if o.Simplified {
+	if o.simplified {
 		inv.SetTags(tax.TagSimplified)
 	}
 
@@ -104,10 +108,10 @@ func buildInvoice(r *rand.Rand, o *Options, country l10n.TaxCountryCode, addon c
 	}
 
 	inv.Supplier = buildParty(r, country, locale, locale.SupplierNames, ac, true)
-	if !o.Simplified {
+	if !o.simplified {
 		inv.Customer = buildParty(r, country, locale, locale.CustomerNames, ac, false)
 	}
-	inv.Lines = buildLines(r, country, locale, ac, o.Lines)
+	inv.Lines = buildLines(r, country, locale, ac, o.lines)
 	inv.Payment = buildPayment(r, locale, ac)
 
 	if ac != nil && ac.RequiresOrdering {
@@ -322,12 +326,9 @@ func buildLines(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, a
 }
 
 func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac *addonConfig) *bill.Line {
-	var item itemData
-	if r.IntN(2) == 0 && len(locale.Products) > 0 {
-		item = pick(r, locale.Products)
-	} else {
-		item = pick(r, locale.Services)
-	}
+	// Build a pool of available items from products and services.
+	items := append(locale.Products, locale.Services...)
+	item := pick(r, items)
 
 	price, _ := num.AmountFromString(item.Price)
 	lineItem := &org.Item{
@@ -344,7 +345,7 @@ func buildLine(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, ac
 		lineItem.Identities = fn(r)
 	}
 
-	combo := pickTaxCombo(r, country)
+	combo := pickTaxCombo(country)
 	if ac != nil && ac.ComboExt != nil {
 		combo.Ext = ac.ComboExt(r)
 	}
@@ -410,7 +411,7 @@ func regimeCurrency(country l10n.TaxCountryCode) currency.Code {
 	return currency.USD
 }
 
-func pickTaxCombo(_ *rand.Rand, country l10n.TaxCountryCode) *tax.Combo {
+func pickTaxCombo(country l10n.TaxCountryCode) *tax.Combo {
 	regime := tax.RegimeDefFor(l10n.Code(country))
 	if regime == nil {
 		return &tax.Combo{Category: tax.CategoryVAT, Rate: tax.KeyStandard}
@@ -466,9 +467,9 @@ func pick[T any](r *rand.Rand, items []T) T {
 	return items[r.IntN(len(items))]
 }
 
-func newRand(o *Options) *rand.Rand {
-	if o.HasSeed {
-		return rand.New(rand.NewPCG(uint64(o.Seed), uint64(o.Seed)))
+func newRand(o *options) *rand.Rand {
+	if o.hasSeed {
+		return rand.New(rand.NewPCG(uint64(o.seed), uint64(o.seed)))
 	}
 	return rand.New(rand.NewPCG(uint64(time.Now().UnixNano()), uint64(time.Now().UnixNano()+1)))
 }

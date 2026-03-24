@@ -16,9 +16,9 @@ import (
 )
 
 var allRegimes = []l10n.TaxCountryCode{
-	"ES", "DE", "MX", "AR", "AT", "BE", "BR", "CA", "CH", "CO",
-	"DK", "FR", "GB", "GR", "IE", "IN", "IT", "NL", "PL", "PT",
-	"SE", "SG", "US",
+	"AE", "AR", "AT", "BE", "BR", "CA", "CH", "CO", "DE", "DK",
+	"ES", "FR", "GB", "GR", "IE", "IN", "IT", "MX", "NL", "PL",
+	"PT", "SE", "SG", "US",
 }
 
 var allAddons = []struct {
@@ -29,6 +29,7 @@ var allAddons = []struct {
 	{"CO", "co-dian-v2"}, {"DE", "de-xrechnung-v3"}, {"DE", "de-zugferd-v2"},
 	{"ES", "es-facturae-v3"}, {"ES", "es-sii-v1"}, {"ES", "es-tbai-v1"}, {"ES", "es-verifactu-v1"},
 	{"FR", "fr-choruspro-v1"}, {"FR", "fr-ctc-flow2-v1"}, {"FR", "fr-facturx-v1"},
+	{"DE", "eu-en16931-v2017"},
 	{"GR", "gr-mydata-v1"}, {"IT", "it-sdi-v1"}, {"IT", "it-ticket-v1"},
 	{"MX", "mx-cfdi-v4"}, {"PL", "pl-favat-v1"}, {"PT", "pt-saft-v1"},
 }

@@ -29,7 +29,6 @@ var knownTaxIDs = map[l10n.TaxCountryCode][]cbc.Code{
 	"CA": {"123456789"},
 	"CH": {"E284156502", "E432825998"},
 	"CO": {"412615332", "8110079918"},
-	"CZ": {"00177041", "45274649"},
 	"DE": {"111111125", "282741168"},
 	"DK": {"13585628", "88146328"},
 	"EL": {"925667500", "064677095"},
@@ -67,8 +66,6 @@ func generateTaxID(r *rand.Rand, country l10n.TaxCountryCode, isOrg bool) cbc.Co
 		return generateCHTaxID(r)
 	case "CO":
 		return generateCOTaxID(r)
-	case "CZ":
-		return generateCZTaxID(r)
 	case "DE":
 		return generateDETaxID(r)
 	case "DK":
@@ -320,30 +317,6 @@ func generateCOTaxID(r *rand.Rand) cbc.Code {
 		check = 11 - check
 	}
 	return cbc.Code(digitsToString(digits) + strconv.Itoa(check))
-}
-
-// --- CZ: mod-11 weighted, 8 digits ---
-
-func generateCZTaxID(r *rand.Rand) cbc.Code {
-	weights := []int{8, 7, 6, 5, 4, 3, 2}
-	for {
-		digits := randomDigits(r, 7)
-		sum := 0
-		for i, w := range weights {
-			sum += digits[i] * w
-		}
-		check := 11 - (sum % 11)
-		switch check {
-		case 10:
-			check = 0
-		case 11:
-			check = 1
-		}
-		if check > 9 {
-			continue
-		}
-		return cbc.Code(fmt.Sprintf("%s%d", digitsToString(digits), check))
-	}
 }
 
 // --- DE: ISO 7064, 9 digits ---

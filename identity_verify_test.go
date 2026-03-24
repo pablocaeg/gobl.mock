@@ -82,7 +82,7 @@ func validateTaxIDViaInvoice(country l10n.TaxCountryCode, code cbc.Code) error {
 		Lines: []*bill.Line{{
 			Quantity: num.MakeAmount(1, 0),
 			Item:     &org.Item{Name: "Test", Price: &price},
-			Taxes:    tax.Set{pickTaxCombo(nil, country)},
+			Taxes:    tax.Set{pickTaxCombo(country)},
 		}},
 	}
 
