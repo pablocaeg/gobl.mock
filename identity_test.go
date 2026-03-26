@@ -79,3 +79,27 @@ func TestGenerateTaxID_IT(t *testing.T) {
 		assert.Len(t, code.String(), 11, "IT tax ID must be 11 chars: %s", code)
 	}
 }
+
+func TestGenerateIBAN(t *testing.T) {
+	r := rand.New(rand.NewPCG(42, 42))
+	countries := []string{"DE", "ES", "FR", "GB", "IT", "NL", "PT", "SE", "AT", "BE", "CH", "DK", "PL", "GR", "IE"}
+	for _, cc := range countries {
+		t.Run(cc, func(t *testing.T) {
+			for range 50 {
+				iban := generateIBAN(r, cc)
+				// Verify mod-97 check: rearrange, convert, mod must equal 1.
+				rearranged := iban[4:] + iban[:4]
+				remainder := 0
+				for _, ch := range rearranged {
+					if ch >= 'A' && ch <= 'Z' {
+						val := int(ch-'A') + 10
+						remainder = (remainder*100 + val) % 97 // 2-digit number
+					} else {
+						remainder = (remainder*10 + int(ch-'0')) % 97
+					}
+				}
+				assert.Equal(t, 1, remainder, "IBAN check failed: %s", iban)
+			}
+		})
+	}
+}

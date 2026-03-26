@@ -127,7 +127,11 @@ var addons = map[cbc.Key]*addonConfig{
 	},
 
 	// --- Italy ---
-	"it-sdi-v1":    {},
+	"it-sdi-v1": {
+		PaymentExt: func(_ *rand.Rand) tax.Extensions {
+			return tax.Extensions{"it-sdi-payment-means": "MP05"} // Bank transfer
+		},
+	},
 	"it-ticket-v1": {},
 
 	// --- Mexico ---

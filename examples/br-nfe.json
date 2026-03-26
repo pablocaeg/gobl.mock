@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d2239-8259-70da-9f0d-a02a11576cda",
+    "uuid": "019d296a-68ac-76a7-a2f5-abf7b08262b8",
     "dig": {
       "alg": "sha256",
-      "val": "e937e012ddbd8630b945617443af5cb9ca8df444e42daea06f5d5d59687ba01b"
+      "val": "620e37468d69d81cd3932aa577066a7cce0795e9f12967e35b95bba944d2bec1"
     }
   },
   "doc": {
@@ -13,11 +13,11 @@
     "$addons": [
       "br-nfe-v4"
     ],
-    "uuid": "019d2239-8259-70e2-9f24-65b643dcf908",
+    "uuid": "019d296a-68ac-76b6-b1bf-82de81e80edf",
     "type": "standard",
     "series": "1",
     "code": "61929",
-    "issue_date": "2026-03-24",
+    "issue_date": "2026-03-26",
     "currency": "BRL",
     "tax": {
       "ext": {
@@ -26,7 +26,7 @@
       }
     },
     "supplier": {
-      "name": "Atlas Consulting",
+      "name": "Construtora Atlântica S.A.",
       "tax_id": {
         "country": "BR",
         "code": "22784006913968"
@@ -40,8 +40,9 @@
       "addresses": [
         {
           "num": "183",
-          "street": "Main Street",
-          "locality": "Commerce District",
+          "street": "Avenida Brasil",
+          "locality": "Curitiba",
+          "region": "PR",
           "state": "SP",
           "code": "63810-512",
           "country": "BR"
@@ -57,7 +58,7 @@
       }
     },
     "customer": {
-      "name": "National Retail Corp.",
+      "name": "Alimentos do Cerrado Ltda.",
       "tax_id": {
         "country": "BR",
         "code": "23380354688718"
@@ -65,8 +66,9 @@
       "addresses": [
         {
           "num": "198",
-          "street": "Industrial Boulevard",
-          "locality": "Commerce District",
+          "street": "Rua Tiradentes",
+          "locality": "Curitiba",
+          "region": "PR",
           "state": "SP",
           "code": "28038-344",
           "country": "BR"
@@ -86,14 +88,14 @@
         "i": 1,
         "quantity": "20",
         "item": {
-          "name": "Software development",
-          "price": "100.00",
+          "name": "Consultoria de TI",
+          "price": "350.00",
           "unit": "h",
           "ext": {
             "br-nfe-cfop": "5102"
           }
         },
-        "sum": "2000.00",
+        "sum": "7000.00",
         "taxes": [
           {
             "cat": "IPI",
@@ -112,20 +114,19 @@
             "percent": "7.60%"
           }
         ],
-        "total": "2000.00"
+        "total": "7000.00"
       },
       {
         "i": 2,
         "quantity": "1",
         "item": {
-          "name": "IT consulting",
-          "price": "120.00",
-          "unit": "h",
+          "name": "Equipamento de rede",
+          "price": "3200.00",
           "ext": {
             "br-nfe-cfop": "5102"
           }
         },
-        "sum": "120.00",
+        "sum": "3200.00",
         "taxes": [
           {
             "cat": "IPI",
@@ -144,19 +145,19 @@
             "percent": "7.60%"
           }
         ],
-        "total": "120.00"
+        "total": "3200.00"
       },
       {
         "i": 3,
         "quantity": "17",
         "item": {
-          "name": "LED monitor",
-          "price": "400.00",
+          "name": "Equipamento de rede",
+          "price": "3200.00",
           "ext": {
             "br-nfe-cfop": "5102"
           }
         },
-        "sum": "6800.00",
+        "sum": "54400.00",
         "taxes": [
           {
             "cat": "IPI",
@@ -175,7 +176,7 @@
             "percent": "7.60%"
           }
         ],
-        "total": "6800.00"
+        "total": "54400.00"
       }
     ],
     "payment": {
@@ -191,63 +192,63 @@
       }
     },
     "totals": {
-      "sum": "8920.00",
-      "total": "8920.00",
+      "sum": "64600.00",
+      "total": "64600.00",
       "taxes": {
         "categories": [
           {
             "code": "IPI",
             "rates": [
               {
-                "base": "8920.00",
+                "base": "64600.00",
                 "percent": "10%",
-                "amount": "892.00"
+                "amount": "6460.00"
               }
             ],
-            "amount": "892.00"
+            "amount": "6460.00"
           },
           {
             "code": "ICMS",
             "informative": true,
             "rates": [
               {
-                "base": "8920.00",
+                "base": "64600.00",
                 "percent": "18%",
-                "amount": "1605.60"
+                "amount": "11628.00"
               }
             ],
-            "amount": "1605.60"
+            "amount": "11628.00"
           },
           {
             "code": "PIS",
             "informative": true,
             "rates": [
               {
-                "base": "8920.00",
+                "base": "64600.00",
                 "percent": "1.65%",
-                "amount": "147.18"
+                "amount": "1065.90"
               }
             ],
-            "amount": "147.18"
+            "amount": "1065.90"
           },
           {
             "code": "COFINS",
             "informative": true,
             "rates": [
               {
-                "base": "8920.00",
+                "base": "64600.00",
                 "percent": "7.60%",
-                "amount": "677.92"
+                "amount": "4909.60"
               }
             ],
-            "amount": "677.92"
+            "amount": "4909.60"
           }
         ],
-        "sum": "892.00"
+        "sum": "6460.00"
       },
-      "tax": "892.00",
-      "total_with_tax": "9812.00",
-      "payable": "9812.00"
+      "tax": "6460.00",
+      "total_with_tax": "71060.00",
+      "payable": "71060.00"
     },
     "notes": [
       {

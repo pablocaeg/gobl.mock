@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d2239-825a-7084-b765-3b84aaf91e9c",
+    "uuid": "019d296a-68b0-78f1-ac54-22bfbbe520d2",
     "dig": {
       "alg": "sha256",
-      "val": "2cf5d29b81602af8b4b65c19b9bc02479d889889f0c3d87118f2166b7710303b"
+      "val": "60471a59251e7ea46b8457cc02eb446fd8db300df7a72ba0082fa26dc5df45ad"
     }
   },
   "doc": {
@@ -13,12 +13,12 @@
     "$addons": [
       "pt-saft-v1"
     ],
-    "uuid": "019d2239-825a-7088-a88b-4da1931af090",
+    "uuid": "019d296a-68b0-7900-bb55-fa73869a8d73",
     "type": "standard",
     "series": "FT MOCK",
     "code": "61929",
-    "issue_date": "2026-03-24",
-    "value_date": "2026-03-24",
+    "issue_date": "2026-03-26",
+    "value_date": "2026-03-26",
     "currency": "EUR",
     "tax": {
       "ext": {
@@ -27,7 +27,7 @@
       }
     },
     "supplier": {
-      "name": "Prime Industries",
+      "name": "Alimentos do Algarve Lda.",
       "tax_id": {
         "country": "PT",
         "code": "592278409"
@@ -35,9 +35,10 @@
       "addresses": [
         {
           "num": "129",
-          "street": "Commerce Avenue",
-          "locality": "Commerce District",
-          "code": "20001",
+          "street": "Rua Augusta",
+          "locality": "Porto",
+          "region": "Porto",
+          "code": "4000-007",
           "country": "PT"
         }
       ],
@@ -48,7 +49,7 @@
       ]
     },
     "customer": {
-      "name": "National Retail Corp.",
+      "name": "Engenharia do Minho Lda.",
       "tax_id": {
         "country": "PT",
         "code": "396942300"
@@ -56,9 +57,10 @@
       "addresses": [
         {
           "num": "71",
-          "street": "Main Street",
-          "locality": "Business Center",
-          "code": "30001",
+          "street": "Avenida dos Aliados",
+          "locality": "Faro",
+          "region": "Faro",
+          "code": "8000-001",
           "country": "PT"
         }
       ],
@@ -73,14 +75,14 @@
         "i": 1,
         "quantity": "18",
         "item": {
-          "name": "LED monitor",
-          "price": "400.00",
+          "name": "Material eletrónico",
+          "price": "2200.00",
           "unit": "one",
           "ext": {
             "pt-saft-product-type": "S"
           }
         },
-        "sum": "7200.00",
+        "sum": "39600.00",
         "taxes": [
           {
             "cat": "VAT",
@@ -93,20 +95,20 @@
             }
           }
         ],
-        "total": "7200.00"
+        "total": "39600.00"
       },
       {
         "i": 2,
         "quantity": "8",
         "item": {
-          "name": "Professional laptop",
-          "price": "1200.00",
+          "name": "Equipamento industrial",
+          "price": "3800.00",
           "unit": "one",
           "ext": {
             "pt-saft-product-type": "S"
           }
         },
-        "sum": "9600.00",
+        "sum": "30400.00",
         "taxes": [
           {
             "cat": "VAT",
@@ -119,20 +121,20 @@
             }
           }
         ],
-        "total": "9600.00"
+        "total": "30400.00"
       },
       {
         "i": 3,
         "quantity": "10",
         "item": {
-          "name": "IT consulting",
-          "price": "120.00",
+          "name": "Consultoria de gestão",
+          "price": "85.00",
           "unit": "h",
           "ext": {
             "pt-saft-product-type": "S"
           }
         },
-        "sum": "1200.00",
+        "sum": "850.00",
         "taxes": [
           {
             "cat": "VAT",
@@ -145,7 +147,7 @@
             }
           }
         ],
-        "total": "1200.00"
+        "total": "850.00"
       }
     ],
     "payment": {
@@ -154,15 +156,18 @@
         "notes": "Payment due upon receipt."
       },
       "instructions": {
-        "key": "credit-transfer",
-        "ext": {
-          "pt-saft-payment-means": "TB"
-        }
+        "key": "credit-transfer+sepa",
+        "credit_transfer": [
+          {
+            "iban": "PT41688749694038531667175",
+            "name": "Bank Account"
+          }
+        ]
       }
     },
     "totals": {
-      "sum": "18000.00",
-      "total": "18000.00",
+      "sum": "70850.00",
+      "total": "70850.00",
       "taxes": {
         "categories": [
           {
@@ -174,19 +179,19 @@
                   "pt-region": "PT",
                   "pt-saft-tax-rate": "NOR"
                 },
-                "base": "18000.00",
+                "base": "70850.00",
                 "percent": "23.0%",
-                "amount": "4140.00"
+                "amount": "16295.50"
               }
             ],
-            "amount": "4140.00"
+            "amount": "16295.50"
           }
         ],
-        "sum": "4140.00"
+        "sum": "16295.50"
       },
-      "tax": "4140.00",
-      "total_with_tax": "22140.00",
-      "payable": "22140.00"
+      "tax": "16295.50",
+      "total_with_tax": "87145.50",
+      "payable": "87145.50"
     }
   }
 }

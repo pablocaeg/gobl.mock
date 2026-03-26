@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d2239-8258-7124-9deb-ac8ed3dff59c",
+    "uuid": "019d296a-68a7-744d-b6af-9b25eb9b63fe",
     "dig": {
       "alg": "sha256",
-      "val": "5d12e5f7080ce0994b8a4ff5452f09ef10cf707a5f1f43805175c50120bc2a8d"
+      "val": "34646afcf30e3a943c40f4773cd10285185aa85956ddd23cf59410dc2ee095be"
     }
   },
   "doc": {
@@ -13,12 +13,12 @@
     "$addons": [
       "mx-cfdi-v4"
     ],
-    "uuid": "019d2239-8258-7128-ba08-2aa6bb0745d2",
+    "uuid": "019d296a-68a7-7465-9630-7dd81f551ef0",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
-    "issue_date": "2026-03-24",
-    "issue_time": "17:41:27",
+    "issue_date": "2026-03-26",
+    "issue_time": "03:12:12",
     "currency": "MXN",
     "tax": {
       "ext": {

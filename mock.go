@@ -257,23 +257,65 @@ func buildDynamicAddonConfig(addon cbc.Key) *addonConfig {
 		return &addonConfig{}
 	}
 
-	// Read extension definitions and pick the first valid value for each.
-	// These are set on invoice.tax.ext where scenarios can override them.
-	ext := make(tax.Extensions)
+	// Build a lookup of extension key → first valid value.
+	firstValue := make(map[cbc.Key]cbc.Code)
 	for _, def := range ad.Extensions {
 		if len(def.Values) > 0 {
-			ext[def.Key] = def.Values[0].Code
+			firstValue[def.Key] = def.Values[0].Code
 		}
 	}
 
-	if len(ext) == 0 {
+	if len(firstValue) == 0 {
 		return &addonConfig{}
 	}
-	return &addonConfig{
-		InvoiceTaxExt: func(_ *rand.Rand) tax.Extensions {
-			return ext
-		},
+
+	// Probe the addon's validator to discover which extensions are required
+	// on which object types, then assign first valid values accordingly.
+	mapping := probeAddonExtensions(ad)
+
+	ac := &addonConfig{}
+
+	if keys, ok := mapping["invoice.tax"]; ok {
+		ac.InvoiceTaxExt = func(_ *rand.Rand) tax.Extensions {
+			return pickExtValues(keys, firstValue)
+		}
 	}
+	if keys, ok := mapping["party"]; ok {
+		fn := func(_ *rand.Rand) tax.Extensions {
+			return pickExtValues(keys, firstValue)
+		}
+		ac.SupplierExt = fn
+		ac.CustomerExt = fn
+	}
+	if keys, ok := mapping["combo"]; ok {
+		ac.ComboExt = func(_ *rand.Rand) tax.Extensions {
+			return pickExtValues(keys, firstValue)
+		}
+	}
+	if keys, ok := mapping["item"]; ok {
+		ac.ItemExt = func(_ *rand.Rand) tax.Extensions {
+			return pickExtValues(keys, firstValue)
+		}
+	}
+	if keys, ok := mapping["pay"]; ok {
+		ac.PaymentExt = func(_ *rand.Rand) tax.Extensions {
+			return pickExtValues(keys, firstValue)
+		}
+	}
+
+	return ac
+}
+
+// pickExtValues creates an Extensions map using the first valid value
+// for each requested key.
+func pickExtValues(keys []cbc.Key, firstValue map[cbc.Key]cbc.Code) tax.Extensions {
+	ext := make(tax.Extensions, len(keys))
+	for _, k := range keys {
+		if v, ok := firstValue[k]; ok {
+			ext[k] = v
+		}
+	}
+	return ext
 }
 
 func buildParty(r *rand.Rand, country l10n.TaxCountryCode, locale *localeData, names []string, ac *addonConfig, isSupplier bool) *org.Party {
@@ -401,12 +443,8 @@ func buildPayment(r *rand.Rand, locale *localeData, ac *addonConfig) *bill.Payme
 
 	instructions := &pay.Instructions{Key: key}
 	if locale.IBANPrefix != "" {
-		digits := make([]byte, 20)
-		for i := range digits {
-			digits[i] = byte('0' + r.IntN(10))
-		}
 		instructions.CreditTransfer = []*pay.CreditTransfer{{
-			IBAN: locale.IBANPrefix + string(digits),
+			IBAN: generateIBAN(r, locale.IBANPrefix),
 			Name: "Bank Account",
 		}}
 	}
@@ -486,6 +524,57 @@ func isoCountry(tc l10n.TaxCountryCode) l10n.ISOCountryCode {
 		return "GR"
 	}
 	return l10n.ISOCountryCode(tc)
+}
+
+// BBAN lengths per country (IBAN total length - 4).
+var bbanLengths = map[string]int{
+	"AE": 19, "AT": 16, "BE": 12, "BR": 25, "CH": 17,
+	"DE": 18, "DK": 14, "ES": 20, "FR": 23, "GB": 18,
+	"GR": 23, "IE": 18, "IT": 23, "NL": 14, "PL": 24,
+	"PT": 21, "SE": 20,
+}
+
+// generateIBAN creates an IBAN with valid mod-97 check digits.
+func generateIBAN(r *rand.Rand, country string) string {
+	bbanLen := bbanLengths[country]
+	if bbanLen == 0 {
+		bbanLen = 18 // safe default
+	}
+
+	// Generate random BBAN (digits only for simplicity).
+	bban := make([]byte, bbanLen)
+	bban[0] = byte('1' + r.IntN(9)) // avoid leading zero
+	for i := 1; i < bbanLen; i++ {
+		bban[i] = byte('0' + r.IntN(10))
+	}
+
+	// Compute check digits: rearrange to BBAN + country + "00", convert letters, mod 97.
+	check := ibanCheckDigits(country, string(bban))
+	return fmt.Sprintf("%s%s%s", country, check, string(bban))
+}
+
+// ibanCheckDigits computes the 2-digit IBAN check using ISO 7064 mod 97-10.
+func ibanCheckDigits(country, bban string) string {
+	// Rearrange: BBAN + CountryLetters + "00"
+	raw := bban + country + "00"
+
+	// Convert letters to numbers: A=10, B=11, ..., Z=35
+	var numeric string
+	for _, ch := range raw {
+		if ch >= 'A' && ch <= 'Z' {
+			numeric += fmt.Sprintf("%d", ch-'A'+10)
+		} else {
+			numeric += string(ch)
+		}
+	}
+
+	// Compute mod 97 using iterative chunk approach (avoids big.Int).
+	remainder := 0
+	for _, ch := range numeric {
+		remainder = (remainder*10 + int(ch-'0')) % 97
+	}
+
+	return fmt.Sprintf("%02d", 98-remainder)
 }
 
 var postalCodeFormats = map[l10n.TaxCountryCode]func(r *rand.Rand) cbc.Code{

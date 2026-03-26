@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d2239-8254-7222-9f31-d350058dbfe6",
+    "uuid": "019d296a-6898-77d7-8ba7-cc21aae756eb",
     "dig": {
       "alg": "sha256",
-      "val": "90a6e1102177fef19f7e97bb2581a47f760ac12a333d2007107de315fc5a72d0"
+      "val": "384421bb0894a642a80428e840aebf0eedb17223472e191d50d1ec6906f6a6d3"
     }
   },
   "doc": {
@@ -14,11 +14,11 @@
       "eu-en16931-v2017",
       "de-xrechnung-v3"
     ],
-    "uuid": "019d2239-8254-722e-a624-f244fad33c70",
+    "uuid": "019d296a-6898-77e3-94cc-00599175b963",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
-    "issue_date": "2026-03-24",
+    "issue_date": "2026-03-26",
     "currency": "EUR",
     "tax": {
       "ext": {
@@ -166,7 +166,7 @@
       }
     ],
     "ordering": {
-      "code": "PO-50291"
+      "code": "PO-15050"
     },
     "payment": {
       "terms": {
@@ -177,7 +177,7 @@
         "key": "credit-transfer+sepa",
         "credit_transfer": [
           {
-            "iban": "DE68874969403853166717",
+            "iban": "DE08688749694038531667",
             "name": "Bank Account"
           }
         ],
