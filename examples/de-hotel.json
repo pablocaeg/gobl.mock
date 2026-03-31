@@ -1,0 +1,164 @@
+{
+  "$schema": "https://gobl.org/draft-0/envelope",
+  "head": {
+    "uuid": "019d4370-c6ae-7534-87da-0f17fd1c14d3",
+    "dig": {
+      "alg": "sha256",
+      "val": "f5b858d2395cf41c723723165bef9638105e5133350ca7c48e97bec7e5d4d25e"
+    }
+  },
+  "doc": {
+    "$schema": "https://gobl.org/draft-0/bill/invoice",
+    "$regime": "DE",
+    "uuid": "019d4370-c6ae-7537-a2da-526604d18b42",
+    "type": "standard",
+    "series": "MOCK",
+    "code": "61929",
+    "issue_date": "2026-03-31",
+    "currency": "EUR",
+    "supplier": {
+      "name": "Weber Maschinenbau GmbH",
+      "tax_id": {
+        "country": "DE",
+        "code": "592278402"
+      },
+      "addresses": [
+        {
+          "num": "129",
+          "street": "Friedrichstraße",
+          "locality": "München",
+          "region": "Bayern",
+          "code": "80331",
+          "country": "DE"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "customer": {
+      "name": "Deutsche Handelskompanie GmbH",
+      "tax_id": {
+        "country": "DE",
+        "code": "496942305"
+      },
+      "addresses": [
+        {
+          "num": "71",
+          "street": "Kurfürstendamm",
+          "locality": "Köln",
+          "region": "Nordrhein-Westfalen",
+          "code": "50667",
+          "country": "DE"
+        }
+      ],
+      "emails": [
+        {
+          "addr": "billing@example.com"
+        }
+      ]
+    },
+    "lines": [
+      {
+        "i": 1,
+        "quantity": "1",
+        "item": {
+          "name": "Kurtaxe",
+          "price": "2.50"
+        },
+        "sum": "2.50",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "exempt"
+          }
+        ],
+        "total": "2.50"
+      },
+      {
+        "i": 2,
+        "quantity": "1",
+        "item": {
+          "name": "Kurtaxe",
+          "price": "2.50"
+        },
+        "sum": "2.50",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "exempt"
+          }
+        ],
+        "total": "2.50"
+      },
+      {
+        "i": 3,
+        "quantity": "4",
+        "period": {
+          "start": "2026-03-25",
+          "end": "2026-03-30"
+        },
+        "item": {
+          "name": "Doppelzimmer",
+          "price": "130.00"
+        },
+        "sum": "520.00",
+        "taxes": [
+          {
+            "cat": "VAT",
+            "key": "standard",
+            "rate": "reduced",
+            "percent": "7%"
+          }
+        ],
+        "total": "520.00"
+      }
+    ],
+    "payment": {
+      "terms": {
+        "key": "instant",
+        "notes": "Payment due upon receipt."
+      },
+      "instructions": {
+        "key": "credit-transfer+sepa",
+        "credit_transfer": [
+          {
+            "iban": "DE34874969403853166717",
+            "name": "Bank Account"
+          }
+        ]
+      }
+    },
+    "totals": {
+      "sum": "525.00",
+      "total": "525.00",
+      "taxes": {
+        "categories": [
+          {
+            "code": "VAT",
+            "rates": [
+              {
+                "key": "exempt",
+                "base": "5.00",
+                "amount": "0.00"
+              },
+              {
+                "key": "standard",
+                "base": "520.00",
+                "percent": "7%",
+                "amount": "36.40"
+              }
+            ],
+            "amount": "36.40"
+          }
+        ],
+        "sum": "36.40"
+      },
+      "tax": "36.40",
+      "total_with_tax": "561.40",
+      "payable": "561.40"
+    }
+  }
+}

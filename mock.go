@@ -62,7 +62,12 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 		return nil, fmt.Errorf("unsupported regime: %s", country)
 	}
 
-	inv := buildInvoice(r, o, country, addon, locale, ac)
+	sc, err := resolveScenario(o.scenario)
+	if err != nil {
+		return nil, err
+	}
+
+	inv := buildInvoice(r, o, country, addon, locale, ac, sc)
 
 	// Apply template overrides if provided.
 	if o.template != nil {
@@ -81,7 +86,7 @@ func Envelope(opts ...Option) (*gobl.Envelope, error) {
 	return env, nil
 }
 
-func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon cbc.Key, locale *localeData, ac *addonConfig) *bill.Invoice {
+func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon cbc.Key, locale *localeData, ac *addonConfig, sc *scenarioConfig) *bill.Invoice {
 	series := cbc.Code("MOCK")
 	if ac != nil && ac.Series != "" {
 		series = cbc.Code(ac.Series)
@@ -100,8 +105,17 @@ func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon c
 	if addon != "" {
 		inv.SetAddons(addon)
 	}
+
+	// Tags: merge scenario tags with simplified flag.
+	var tags []cbc.Key
+	if sc != nil {
+		tags = append(tags, sc.Tags...)
+	}
 	if o.simplified {
-		inv.SetTags(tax.TagSimplified)
+		tags = append(tags, tax.TagSimplified)
+	}
+	if len(tags) > 0 {
+		inv.SetTags(tags...)
 	}
 
 	if ac != nil && ac.InvoiceTaxExt != nil {
@@ -111,12 +125,59 @@ func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon c
 		inv.Notes = ac.Notes
 	}
 
+	// Supplier.
 	inv.Supplier = buildParty(r, country, locale, locale.SupplierNames, ac, true)
-	if !o.simplified {
-		inv.Customer = buildParty(r, country, locale, locale.CustomerNames, ac, false)
+	if sc != nil {
+		applyScenarioToSupplier(r, inv.Supplier, sc, country)
 	}
-	inv.Lines = buildLines(r, country, locale, ac, o.lines)
+
+	// Customer: scenario may override country for cross-border.
+	if !o.simplified {
+		custCountry := country
+		custLocale := locale
+		if sc != nil && sc.CustomerCountry != nil {
+			custCountry = sc.CustomerCountry(r, country)
+			custLocale = getLocale(custCountry)
+		}
+		inv.Customer = buildParty(r, custCountry, custLocale, custLocale.CustomerNames, ac, false)
+	}
+
+	// Lines: scenario items replace locale items when present.
+	if sc != nil && len(sc.resolveItems(country)) > 0 {
+		inv.Lines = buildScenarioLines(r, country, addon, ac, sc, o.lines)
+	} else {
+		inv.Lines = buildLines(r, country, locale, ac, o.lines)
+	}
+
+	// For reverse-charge without custom items, override tax combos on existing lines.
+	// Only applies to VAT regimes — reverse charge is a VAT-specific concept.
+	if sc != nil && len(sc.resolveItems(country)) == 0 && len(sc.Tags) > 0 {
+		for _, tag := range sc.Tags {
+			if tag == tax.TagReverseCharge {
+				combo := pickTaxCombo(country)
+				if combo.Category == tax.CategoryVAT {
+					combo.Key = tax.KeyReverseCharge
+					combo.Rate = ""
+					for _, line := range inv.Lines {
+						line.Taxes = tax.Set{combo}
+					}
+				}
+				break
+			}
+		}
+	}
+
+	// Charges from scenario. Some addons (e.g. mx-cfdi-v4) reject
+	// document-level charges, so skip when the addon blocks them.
+	if sc != nil && sc.Charges != nil && !addonBlocksCharges(addon) {
+		inv.Charges = sc.Charges(r, country)
+	}
+
+	// Payment.
 	inv.Payment = buildPayment(r, locale, ac)
+	if sc != nil && sc.PaymentTerms != nil {
+		inv.Payment.Terms = sc.PaymentTerms(r)
+	}
 
 	if ac != nil && ac.RequiresOrdering {
 		inv.Ordering = &bill.Ordering{
@@ -598,6 +659,12 @@ func pick[T any](r *rand.Rand, items []T) T {
 		return zero
 	}
 	return items[r.IntN(len(items))]
+}
+
+// addonBlocksCharges returns true if the addon rejects document-level charges.
+// Currently only mx-cfdi-v4 does this.
+func addonBlocksCharges(addon cbc.Key) bool {
+	return addon == "mx-cfdi-v4"
 }
 
 func newRand(o *options) *rand.Rand {

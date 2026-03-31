@@ -89,6 +89,33 @@ func TestRoot_Output(t *testing.T) {
 	assert.Contains(t, string(data), `"$schema"`)
 }
 
+func TestRoot_WithScenario(t *testing.T) {
+	scenarios := []struct {
+		regime   string
+		scenario string
+	}{
+		{"IT", "hotel"},
+		{"ES", "freelance"},
+		{"MX", "freelance"},
+		{"ES", "reverse-charge"},
+	}
+	for _, tc := range scenarios {
+		t.Run(tc.regime+"/"+tc.scenario, func(t *testing.T) {
+			cmd := root()
+			cmd.SetArgs([]string{"--regime", tc.regime, "--scenario", tc.scenario, "--seed", "42"})
+			err := cmd.Execute()
+			assert.NoError(t, err)
+		})
+	}
+}
+
+func TestRoot_InvalidScenario(t *testing.T) {
+	cmd := root()
+	cmd.SetArgs([]string{"--regime", "ES", "--scenario", "nonexistent", "--seed", "42"})
+	err := cmd.Execute()
+	assert.Error(t, err)
+}
+
 func TestRoot_InvalidRegime(t *testing.T) {
 	cmd := root()
 	cmd.SetArgs([]string{"--regime", "ZZ", "--seed", "42"})

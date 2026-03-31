@@ -1,20 +1,20 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d296a-68b4-7d90-bc1b-4fcff19f4d30",
+    "uuid": "019d4370-c6ac-7de2-b3a1-378300dd8ecf",
     "dig": {
       "alg": "sha256",
-      "val": "04c1cf6f00a26c3f8d9ffff3abdda6128bd1e752fb32069dcf3fcfc1bc28ded3"
+      "val": "e4c6df2975f70c559a73bb4125b172b7e11054a728988e59c757403759536fa4"
     }
   },
   "doc": {
     "$schema": "https://gobl.org/draft-0/bill/invoice",
     "$regime": "US",
-    "uuid": "019d296a-68b4-7da4-94de-8690e0cec2e9",
+    "uuid": "019d4370-c6ac-7de6-b306-fc9d6825fbce",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
-    "issue_date": "2026-03-26",
+    "issue_date": "2026-03-31",
     "currency": "USD",
     "supplier": {
       "name": "Pinehurst Technologies Inc.",

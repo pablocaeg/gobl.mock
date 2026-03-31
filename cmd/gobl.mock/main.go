@@ -29,6 +29,7 @@ func root() *cobra.Command {
 		regime     string
 		addon      string
 		invType    string
+		scenario   string
 		lines      int
 		simplified bool
 		seed       int64
@@ -50,6 +51,9 @@ func root() *cobra.Command {
 			}
 			if invType != "" {
 				opts = append(opts, mock.WithType(cbc.Key(invType)))
+			}
+			if scenario != "" {
+				opts = append(opts, mock.WithScenario(cbc.Key(scenario)))
 			}
 			if simplified {
 				opts = append(opts, mock.WithSimplified())
@@ -84,6 +88,7 @@ func root() *cobra.Command {
 	cmd.Flags().StringVar(&regime, "regime", "ES", "Tax regime country code")
 	cmd.Flags().StringVar(&addon, "addon", "", "Addon to apply (e.g. es-facturae-v3)")
 	cmd.Flags().StringVar(&invType, "type", "", "Invoice type: standard, credit-note, corrective, debit-note, proforma")
+	cmd.Flags().StringVar(&scenario, "scenario", "", "Scenario: hotel, freelance, reverse-charge, restaurant, ecommerce")
 	cmd.Flags().IntVar(&lines, "lines", 3, "Number of line items")
 	cmd.Flags().BoolVar(&simplified, "simplified", false, "Generate a simplified invoice")
 	cmd.Flags().Int64Var(&seed, "seed", 0, "Random seed for reproducible output")

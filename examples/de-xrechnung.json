@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d296a-6898-77d7-8ba7-cc21aae756eb",
+    "uuid": "019d4370-c6a6-7d1b-87ce-ee9e24a7d767",
     "dig": {
       "alg": "sha256",
-      "val": "384421bb0894a642a80428e840aebf0eedb17223472e191d50d1ec6906f6a6d3"
+      "val": "bb73a5c7a83482176dbe910fe6093329a666c3418d8bd0a387aad5ef519bd9d1"
     }
   },
   "doc": {
@@ -14,11 +14,11 @@
       "eu-en16931-v2017",
       "de-xrechnung-v3"
     ],
-    "uuid": "019d296a-6898-77e3-94cc-00599175b963",
+    "uuid": "019d4370-c6a6-7d1f-9887-c52362452d01",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
-    "issue_date": "2026-03-26",
+    "issue_date": "2026-03-31",
     "currency": "EUR",
     "tax": {
       "ext": {

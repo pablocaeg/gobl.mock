@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d4370-c6a9-772f-8cb2-797636b6d4fc",
+    "uuid": "019d4370-c6ad-7979-b3fb-c98b8e600d33",
     "dig": {
       "alg": "sha256",
-      "val": "9c3aef124e1956927b177ad790fe185aa70b0a592820ed577c8c171ecf545764"
+      "val": "a7d0ba6db80ddfc81ac46e1f35fcc6a496a326279ecb9795609100cdac52c312"
     }
   },
   "doc": {
@@ -13,7 +13,7 @@
     "$addons": [
       "it-sdi-v1"
     ],
-    "uuid": "019d4370-c6a9-7737-b3a5-7b3fed9c842b",
+    "uuid": "019d4370-c6ad-7981-83a3-fd3948929bef",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
@@ -75,59 +75,63 @@
     "lines": [
       {
         "i": 1,
-        "quantity": "18",
+        "quantity": "1",
         "item": {
-          "name": "Consulenza aziendale",
-          "price": "100.00",
-          "unit": "h"
+          "name": "Tassa di Soggiorno",
+          "price": "1.00"
         },
-        "sum": "1800.00",
+        "sum": "1.00",
         "taxes": [
           {
             "cat": "VAT",
-            "key": "standard",
-            "rate": "general",
-            "percent": "22.0%"
+            "key": "exempt",
+            "ext": {
+              "it-sdi-exempt": "N4"
+            }
           }
         ],
-        "total": "1800.00"
+        "total": "1.00"
       },
       {
         "i": 2,
-        "quantity": "16",
+        "quantity": "1",
         "item": {
-          "name": "Sviluppo software",
-          "price": "85.00",
-          "unit": "h"
+          "name": "Tassa di Soggiorno",
+          "price": "1.00"
         },
-        "sum": "1360.00",
+        "sum": "1.00",
         "taxes": [
           {
             "cat": "VAT",
-            "key": "standard",
-            "rate": "general",
-            "percent": "22.0%"
+            "key": "exempt",
+            "ext": {
+              "it-sdi-exempt": "N4"
+            }
           }
         ],
-        "total": "1360.00"
+        "total": "1.00"
       },
       {
         "i": 3,
-        "quantity": "20",
-        "item": {
-          "name": "Strumentazione elettronica",
-          "price": "2800.00"
+        "quantity": "4",
+        "period": {
+          "start": "2026-03-25",
+          "end": "2026-03-30"
         },
-        "sum": "56000.00",
+        "item": {
+          "name": "Camera Matrimoniale",
+          "price": "125.00"
+        },
+        "sum": "500.00",
         "taxes": [
           {
             "cat": "VAT",
             "key": "standard",
-            "rate": "general",
-            "percent": "22.0%"
+            "rate": "intermediate",
+            "percent": "10.0%"
           }
         ],
-        "total": "56000.00"
+        "total": "500.00"
       }
     ],
     "payment": {
@@ -139,7 +143,7 @@
         "key": "credit-transfer+sepa",
         "credit_transfer": [
           {
-            "iban": "IT4469403853166717552679535",
+            "iban": "IT4150385316671755267953549",
             "name": "Bank Account"
           }
         ],
@@ -149,28 +153,36 @@
       }
     },
     "totals": {
-      "sum": "59160.00",
-      "total": "59160.00",
+      "sum": "502.00",
+      "total": "502.00",
       "taxes": {
         "categories": [
           {
             "code": "VAT",
             "rates": [
               {
+                "key": "exempt",
+                "ext": {
+                  "it-sdi-exempt": "N4"
+                },
+                "base": "2.00",
+                "amount": "0.00"
+              },
+              {
                 "key": "standard",
-                "base": "59160.00",
-                "percent": "22.0%",
-                "amount": "13015.20"
+                "base": "500.00",
+                "percent": "10.0%",
+                "amount": "50.00"
               }
             ],
-            "amount": "13015.20"
+            "amount": "50.00"
           }
         ],
-        "sum": "13015.20"
+        "sum": "50.00"
       },
-      "tax": "13015.20",
-      "total_with_tax": "72175.20",
-      "payable": "72175.20"
+      "tax": "50.00",
+      "total_with_tax": "552.00",
+      "payable": "552.00"
     }
   }
 }

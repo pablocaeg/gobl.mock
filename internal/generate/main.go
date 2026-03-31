@@ -132,18 +132,29 @@ var generatedAddons = []generatedAddon{
 
 func generateExamples() error {
 	examples := []struct {
-		name   string
-		regime l10n.TaxCountryCode
-		addon  cbc.Key
+		name     string
+		regime   l10n.TaxCountryCode
+		addon    cbc.Key
+		scenario cbc.Key
 	}{
-		{"es-standard", "ES", ""},
-		{"de-xrechnung", "DE", "de-xrechnung-v3"},
-		{"fr-standard", "FR", ""},
-		{"it-sdi", "IT", "it-sdi-v1"},
-		{"mx-cfdi", "MX", "mx-cfdi-v4"},
-		{"br-nfe", "BR", "br-nfe-v4"},
-		{"pt-saft", "PT", "pt-saft-v1"},
-		{"us-standard", "US", ""},
+		{"es-standard", "ES", "", ""},
+		{"de-xrechnung", "DE", "de-xrechnung-v3", ""},
+		{"fr-standard", "FR", "", ""},
+		{"it-sdi", "IT", "it-sdi-v1", ""},
+		{"mx-cfdi", "MX", "mx-cfdi-v4", ""},
+		{"br-nfe", "BR", "br-nfe-v4", ""},
+		{"pt-saft", "PT", "pt-saft-v1", ""},
+		{"us-standard", "US", "", ""},
+		// Scenario examples
+		{"it-hotel", "IT", "it-sdi-v1", "hotel"},
+		{"de-hotel", "DE", "", "hotel"},
+		{"es-freelance", "ES", "", "freelance"},
+		{"it-freelance", "IT", "it-sdi-v1", "freelance"},
+		{"mx-freelance", "MX", "mx-cfdi-v4", "freelance"},
+		{"co-freelance", "CO", "co-dian-v2", "freelance"},
+		{"es-reverse-charge", "ES", "", "reverse-charge"},
+		{"fr-restaurant", "FR", "", "restaurant"},
+		{"es-ecommerce", "ES", "", "ecommerce"},
 	}
 
 	for _, ex := range examples {
@@ -153,6 +164,9 @@ func generateExamples() error {
 		}
 		if ex.addon != "" {
 			opts = append(opts, mock.WithAddon(ex.addon))
+		}
+		if ex.scenario != "" {
+			opts = append(opts, mock.WithScenario(ex.scenario))
 		}
 
 		env, err := mock.Envelope(opts...)

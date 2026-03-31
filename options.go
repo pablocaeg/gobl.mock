@@ -10,6 +10,7 @@ type options struct {
 	regime     l10n.TaxCountryCode
 	addon      cbc.Key
 	invType    cbc.Key
+	scenario   cbc.Key
 	lines      int
 	simplified bool
 	seed       int64
@@ -53,6 +54,12 @@ func WithSimplified() Option {
 // WithSeed sets a deterministic random seed for reproducible output.
 func WithSeed(seed int64) Option {
 	return func(o *options) { o.seed = seed; o.hasSeed = true }
+}
+
+// WithScenario sets a domain-specific scenario for invoice generation.
+// Available scenarios: hotel, freelance, reverse-charge, restaurant, ecommerce.
+func WithScenario(key cbc.Key) Option {
+	return func(o *options) { o.scenario = key }
 }
 
 // WithTemplate provides a partial invoice whose non-nil fields override

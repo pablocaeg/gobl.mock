@@ -1,10 +1,10 @@
 {
   "$schema": "https://gobl.org/draft-0/envelope",
   "head": {
-    "uuid": "019d4370-c6a9-772f-8cb2-797636b6d4fc",
+    "uuid": "019d4370-c6af-78f8-b582-012fb02a610b",
     "dig": {
       "alg": "sha256",
-      "val": "9c3aef124e1956927b177ad790fe185aa70b0a592820ed577c8c171ecf545764"
+      "val": "7e8cbf42462ad701f5b4860960dc150a971f4b7577473aa8142578bc028a3d37"
     }
   },
   "doc": {
@@ -13,7 +13,7 @@
     "$addons": [
       "it-sdi-v1"
     ],
-    "uuid": "019d4370-c6a9-7737-b3a5-7b3fed9c842b",
+    "uuid": "019d4370-c6af-78fc-9f12-d84045caabd5",
     "type": "standard",
     "series": "MOCK",
     "code": "61929",
@@ -31,6 +31,19 @@
         "country": "IT",
         "code": "99227840065"
       },
+      "people": [
+        {
+          "name": {
+            "given": "Giulia",
+            "surname": "Rossi"
+          },
+          "emails": [
+            {
+              "addr": "contact@example.com"
+            }
+          ]
+        }
+      ],
       "addresses": [
         {
           "num": "79",
@@ -75,71 +88,121 @@
     "lines": [
       {
         "i": 1,
-        "quantity": "18",
+        "quantity": "120",
+        "period": {
+          "label": "Billing period",
+          "start": "2026-02-01",
+          "end": "2026-02-28"
+        },
         "item": {
           "name": "Consulenza aziendale",
-          "price": "100.00",
+          "price": "80.00",
           "unit": "h"
         },
-        "sum": "1800.00",
+        "sum": "9600.00",
         "taxes": [
           {
             "cat": "VAT",
             "key": "standard",
             "rate": "general",
             "percent": "22.0%"
+          },
+          {
+            "cat": "IRPEF",
+            "percent": "20.0%",
+            "ext": {
+              "it-sdi-retained": "A"
+            }
           }
         ],
-        "total": "1800.00"
+        "total": "9600.00"
       },
       {
         "i": 2,
-        "quantity": "16",
+        "quantity": "160",
+        "period": {
+          "label": "Billing period",
+          "start": "2026-02-01",
+          "end": "2026-02-28"
+        },
         "item": {
-          "name": "Sviluppo software",
-          "price": "85.00",
+          "name": "Servizi di sviluppo",
+          "price": "90.00",
           "unit": "h"
         },
-        "sum": "1360.00",
+        "sum": "14400.00",
+        "discounts": [
+          {
+            "reason": "Discount",
+            "percent": "10%",
+            "amount": "1440.00"
+          }
+        ],
         "taxes": [
           {
             "cat": "VAT",
             "key": "standard",
             "rate": "general",
             "percent": "22.0%"
+          },
+          {
+            "cat": "IRPEF",
+            "percent": "20.0%",
+            "ext": {
+              "it-sdi-retained": "A"
+            }
           }
         ],
-        "total": "1360.00"
+        "total": "12960.00"
       },
       {
         "i": 3,
-        "quantity": "20",
-        "item": {
-          "name": "Strumentazione elettronica",
-          "price": "2800.00"
+        "quantity": "40",
+        "period": {
+          "label": "Billing period",
+          "start": "2026-02-01",
+          "end": "2026-02-28"
         },
-        "sum": "56000.00",
+        "item": {
+          "name": "Consulenza aziendale",
+          "price": "80.00",
+          "unit": "h"
+        },
+        "sum": "3200.00",
         "taxes": [
           {
             "cat": "VAT",
             "key": "standard",
             "rate": "general",
             "percent": "22.0%"
+          },
+          {
+            "cat": "IRPEF",
+            "percent": "20.0%",
+            "ext": {
+              "it-sdi-retained": "A"
+            }
           }
         ],
-        "total": "56000.00"
+        "total": "3200.00"
       }
     ],
     "payment": {
       "terms": {
-        "key": "instant",
-        "notes": "Payment due upon receipt."
+        "key": "due-date",
+        "due_dates": [
+          {
+            "date": "2026-05-01",
+            "amount": "26275.20",
+            "percent": "100%"
+          }
+        ]
       },
       "instructions": {
         "key": "credit-transfer+sepa",
         "credit_transfer": [
           {
-            "iban": "IT4469403853166717552679535",
+            "iban": "IT9113853166717552679535491",
             "name": "Bank Account"
           }
         ],
@@ -149,8 +212,8 @@
       }
     },
     "totals": {
-      "sum": "59160.00",
-      "total": "59160.00",
+      "sum": "25760.00",
+      "total": "25760.00",
       "taxes": {
         "categories": [
           {
@@ -158,19 +221,36 @@
             "rates": [
               {
                 "key": "standard",
-                "base": "59160.00",
+                "base": "25760.00",
                 "percent": "22.0%",
-                "amount": "13015.20"
+                "amount": "5667.20"
               }
             ],
-            "amount": "13015.20"
+            "amount": "5667.20"
+          },
+          {
+            "code": "IRPEF",
+            "retained": true,
+            "rates": [
+              {
+                "ext": {
+                  "it-sdi-retained": "A"
+                },
+                "base": "25760.00",
+                "percent": "20.0%",
+                "amount": "5152.00"
+              }
+            ],
+            "amount": "5152.00"
           }
         ],
-        "sum": "13015.20"
+        "sum": "5667.20",
+        "retained": "5152.00"
       },
-      "tax": "13015.20",
-      "total_with_tax": "72175.20",
-      "payable": "72175.20"
+      "tax": "5667.20",
+      "total_with_tax": "31427.20",
+      "retained_tax": "5152.00",
+      "payable": "26275.20"
     }
   }
 }
