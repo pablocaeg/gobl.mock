@@ -375,7 +375,7 @@ func freelanceItemsSimple(name1, price1, name2, price2 string) []scenarioItem {
 //     Reduced (10%) applies to some prepared food. We use intermediate as reasonable default.
 func restaurantScenario() *scenarioConfig {
 	return &scenarioConfig{
-		Charges: func(r *rand.Rand, _ l10n.TaxCountryCode) []*bill.Charge {
+		Charges: func(_ *rand.Rand, _ l10n.TaxCountryCode) []*bill.Charge {
 			pct := num.MakePercentage(100, 3)
 			return []*bill.Charge{{
 				Key:     bill.ChargeKeyHandling,
@@ -395,22 +395,22 @@ func restaurantScenario() *scenarioConfig {
 			"FR": {
 				Items: []scenarioItem{
 					{Name: "Plat principal", Price: "22.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Entree", Price: "14.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Dessert", Price: "10.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Bouteille de vin", Price: "30.00", Quantity: qtyOne},
 				},
 			},
 			"IT": {
 				Items: []scenarioItem{
 					{Name: "Primo piatto", Price: "16.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Antipasto", Price: "12.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Dolce", Price: "8.00", Quantity: qtySmall,
-						TaxCombo: vatRate(tax.RateIntermediate)},
+						TaxCombo: vatIntermediate()},
 					{Name: "Vino della casa", Price: "20.00", Quantity: qtyOne},
 				},
 			},
@@ -505,10 +505,10 @@ func ecommerceScenario() *scenarioConfig {
 	}
 }
 
-// vatRate returns a TaxCombo function that uses the given VAT rate.
-func vatRate(rate cbc.Key) func(l10n.TaxCountryCode, *addonConfig, *rand.Rand) tax.Set {
+// vatIntermediate returns a TaxCombo function for VAT intermediate rate.
+func vatIntermediate() func(l10n.TaxCountryCode, *addonConfig, *rand.Rand) tax.Set {
 	return func(_ l10n.TaxCountryCode, _ *addonConfig, _ *rand.Rand) tax.Set {
-		return tax.Set{{Category: tax.CategoryVAT, Rate: rate}}
+		return tax.Set{{Category: tax.CategoryVAT, Rate: tax.RateIntermediate}}
 	}
 }
 

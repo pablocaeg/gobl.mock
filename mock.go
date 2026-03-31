@@ -105,17 +105,8 @@ func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon c
 	if addon != "" {
 		inv.SetAddons(addon)
 	}
-
-	// Tags: merge scenario tags with simplified flag.
-	var tags []cbc.Key
-	if sc != nil {
-		tags = append(tags, sc.Tags...)
-	}
 	if o.simplified {
-		tags = append(tags, tax.TagSimplified)
-	}
-	if len(tags) > 0 {
-		inv.SetTags(tags...)
+		inv.SetTags(tax.TagSimplified)
 	}
 
 	if ac != nil && ac.InvoiceTaxExt != nil {
@@ -125,59 +116,12 @@ func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon c
 		inv.Notes = ac.Notes
 	}
 
-	// Supplier.
 	inv.Supplier = buildParty(r, country, locale, locale.SupplierNames, ac, true)
-	if sc != nil {
-		applyScenarioToSupplier(r, inv.Supplier, sc, country)
-	}
-
-	// Customer: scenario may override country for cross-border.
 	if !o.simplified {
-		custCountry := country
-		custLocale := locale
-		if sc != nil && sc.CustomerCountry != nil {
-			custCountry = sc.CustomerCountry(r, country)
-			custLocale = getLocale(custCountry)
-		}
-		inv.Customer = buildParty(r, custCountry, custLocale, custLocale.CustomerNames, ac, false)
+		inv.Customer = buildParty(r, country, locale, locale.CustomerNames, ac, false)
 	}
-
-	// Lines: scenario items replace locale items when present.
-	if sc != nil && len(sc.resolveItems(country)) > 0 {
-		inv.Lines = buildScenarioLines(r, country, addon, ac, sc, o.lines)
-	} else {
-		inv.Lines = buildLines(r, country, locale, ac, o.lines)
-	}
-
-	// For reverse-charge without custom items, override tax combos on existing lines.
-	// Only applies to VAT regimes — reverse charge is a VAT-specific concept.
-	if sc != nil && len(sc.resolveItems(country)) == 0 && len(sc.Tags) > 0 {
-		for _, tag := range sc.Tags {
-			if tag == tax.TagReverseCharge {
-				combo := pickTaxCombo(country)
-				if combo.Category == tax.CategoryVAT {
-					combo.Key = tax.KeyReverseCharge
-					combo.Rate = ""
-					for _, line := range inv.Lines {
-						line.Taxes = tax.Set{combo}
-					}
-				}
-				break
-			}
-		}
-	}
-
-	// Charges from scenario. Some addons (e.g. mx-cfdi-v4) reject
-	// document-level charges, so skip when the addon blocks them.
-	if sc != nil && sc.Charges != nil && !addonBlocksCharges(addon) {
-		inv.Charges = sc.Charges(r, country)
-	}
-
-	// Payment.
+	inv.Lines = buildLines(r, country, locale, ac, o.lines)
 	inv.Payment = buildPayment(r, locale, ac)
-	if sc != nil && sc.PaymentTerms != nil {
-		inv.Payment.Terms = sc.PaymentTerms(r)
-	}
 
 	if ac != nil && ac.RequiresOrdering {
 		inv.Ordering = &bill.Ordering{
@@ -190,7 +134,73 @@ func buildInvoice(r *rand.Rand, o *options, country l10n.TaxCountryCode, addon c
 		}
 	}
 
+	if sc != nil {
+		applyScenario(r, inv, o, country, addon, ac, sc)
+	}
+
 	return inv
+}
+
+// applyScenario applies domain-specific overrides to the invoice.
+func applyScenario(r *rand.Rand, inv *bill.Invoice, o *options, country l10n.TaxCountryCode, addon cbc.Key, ac *addonConfig, sc *scenarioConfig) {
+	// Tags.
+	if len(sc.Tags) > 0 {
+		tags := sc.Tags
+		if o.simplified {
+			tags = append(tags, tax.TagSimplified)
+		}
+		inv.SetTags(tags...)
+	}
+
+	// Supplier: add people if needed.
+	applyScenarioToSupplier(r, inv.Supplier, sc, country)
+
+	// Customer: scenario may override country for cross-border.
+	if !o.simplified && sc.CustomerCountry != nil {
+		custCountry := sc.CustomerCountry(r, country)
+		custLocale := getLocale(custCountry)
+		inv.Customer = buildParty(r, custCountry, custLocale, custLocale.CustomerNames, ac, false)
+	}
+
+	// Lines: scenario items replace locale items when present.
+	if len(sc.resolveItems(country)) > 0 {
+		inv.Lines = buildScenarioLines(r, country, addon, ac, sc, o.lines)
+	}
+
+	// Reverse-charge without custom items: override tax combos.
+	applyReverseChargeTaxes(inv, sc, country)
+
+	// Document-level charges (skip for addons that reject them).
+	if sc.Charges != nil && !addonBlocksCharges(addon) {
+		inv.Charges = sc.Charges(r, country)
+	}
+
+	// Payment terms override.
+	if sc.PaymentTerms != nil {
+		inv.Payment.Terms = sc.PaymentTerms(r)
+	}
+}
+
+// applyReverseChargeTaxes overrides line tax combos for reverse-charge
+// scenarios that use locale items (no custom scenario items).
+// Only applies to VAT regimes — reverse charge is a VAT-specific concept.
+func applyReverseChargeTaxes(inv *bill.Invoice, sc *scenarioConfig, country l10n.TaxCountryCode) {
+	if len(sc.resolveItems(country)) > 0 {
+		return
+	}
+	for _, tag := range sc.Tags {
+		if tag == tax.TagReverseCharge {
+			combo := pickTaxCombo(country)
+			if combo.Category == tax.CategoryVAT {
+				combo.Key = tax.KeyReverseCharge
+				combo.Rate = ""
+				for _, line := range inv.Lines {
+					line.Taxes = tax.Set{combo}
+				}
+			}
+			return
+		}
+	}
 }
 
 // applyInvoiceType sets the invoice type and adds preceding references

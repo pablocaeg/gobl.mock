@@ -186,9 +186,9 @@ func buildScenarioLine(r *rand.Rand, country l10n.TaxCountryCode, addon cbc.Key,
 // EN16931-family addons that require cef-vatex on exempt VAT combos.
 var en16931Addons = map[cbc.Key]bool{
 	"eu-en16931-v2017": true,
-	"de-xrechnung-v3": true,
-	"de-zugferd-v2":   true,
-	"fr-facturx-v1":   true,
+	"de-xrechnung-v3":  true,
+	"de-zugferd-v2":    true,
+	"fr-facturx-v1":    true,
 }
 
 // Per-locale freelancer names for the SupplierPeople feature.
@@ -213,7 +213,7 @@ var freelancerNames = map[l10n.TaxCountryCode]*org.Name{
 var defaultFreelancerName = &org.Name{Given: "Maria", Surname: "Garcia"}
 
 // applyScenarioToSupplier modifies the supplier party based on scenario config.
-func applyScenarioToSupplier(r *rand.Rand, p *org.Party, sc *scenarioConfig, country l10n.TaxCountryCode) {
+func applyScenarioToSupplier(_ *rand.Rand, p *org.Party, sc *scenarioConfig, country l10n.TaxCountryCode) {
 	if sc.SupplierPeople {
 		name := defaultFreelancerName
 		if n, ok := freelancerNames[country]; ok {
